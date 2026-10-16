@@ -1,12 +1,15 @@
-import { defineConfig } from 'oxlint';
+import { type OxlintConfig, defineConfig } from 'oxlint';
 
-import { oxsomeRules } from './src/index.ts';
+import { oxsome } from './src/index.ts';
 
-export default defineConfig({
-  extends: [oxsomeRules],
+// Our own plugin is loaded through the published specifier so `npm run lint`
+// exercises the exact path consumers hit.
+const config: OxlintConfig = {
+  extends: [oxsome.recommended],
 
-  // Our own plugin has to be loaded the same way consumers load it, so the
-  // repo exercises the real specifier path on every `npm run lint`.
+  // Consumers write `jsPlugins: ["@rhberro/oxsome/plugin"]`. We point at the
+  // source instead because oxlint's config loader does not resolve package
+  // self-references — but the plugin object and rule names are identical.
   jsPlugins: [{ name: 'oxsome', specifier: './src/plugin/index.ts' }],
 
   rules: {
@@ -15,4 +18,6 @@ export default defineConfig({
     'oxsome/no-arrow-functions': 'off',
     'oxsome/no-inline-functions-objects-arrays': 'off',
   },
-});
+};
+
+export default defineConfig(config);

@@ -43,12 +43,12 @@ npm install -D @rhberro/oxsome oxlint
 
 ```ts
 // oxlint.config.ts
-import { oxsomeRules, oxsomePluginEntry } from '@rhberro/oxsome';
+import { oxsome } from '@rhberro/oxsome';
 import { defineConfig } from 'oxlint';
 
 export default defineConfig({
-  extends: [oxsomeRules],
-  jsPlugins: [oxsomePluginEntry],
+  extends: [oxsome.recommended],
+  jsPlugins: ['@rhberro/oxsome/plugin'],
 });
 ```
 
@@ -56,6 +56,9 @@ export default defineConfig({
 > e `overrides`. `jsPlugins` **não** é herdável, então o caminho do plugin
 > precisa ser declarado no projeto. E `extends` com import de pacote só
 > funciona em `oxlint.config.ts`, nunca em `.oxlintrc.json`.
+>
+> Sem o `jsPlugins` o oxlint falha alto (`Plugin 'oxsome' not found`). Sem o
+> `extends` ele roda em silêncio e não reporta nada — cuidado com isso.
 
 ### Sobrescrever regras
 
@@ -63,8 +66,8 @@ O merge vai da esquerda para a direita, então regras locais vencem:
 
 ```ts
 export default defineConfig({
-  extends: [oxsomeRules],
-  jsPlugins: [oxsomePluginEntry],
+  extends: [oxsome.recommended],
+  jsPlugins: ['@rhberro/oxsome/plugin'],
   rules: {
     'oxsome/no-arrow-functions': 'off',
   },
@@ -73,14 +76,15 @@ export default defineConfig({
 
 ### Aliasar o plugin
 
-O namespace das regras vem do `name` da entrada em `jsPlugins`. Se preferir
-outro prefixo:
+Na forma string, o oxlint deriva o prefixo das regras do `meta.name` do plugin
+(`oxsome`). Se preferir outro prefixo, use a forma objeto:
 
 ```ts
 jsPlugins: [{ name: "house-style", specifier: "@rhberro/oxsome/plugin" }],
 ```
 
-e as regras passam a ser `house-style/no-arrow-functions`.
+e as regras passam a ser `house-style/no-arrow-functions` — inclusive as de
+`extends`, que precisam ser renomeadas junto.
 
 ## Format
 
@@ -137,9 +141,19 @@ build. Para mudar o comportamento de alguma delas, edite o arquivo e rode
 ### Como o repo se dogfooda
 
 O [`oxlint.config.ts`](./oxlint.config.ts) deste repo carrega o próprio plugin
-por path local, então `npm run lint` exercita o caminho real de specifier. As
-duas regras mais agressivas ficam desligadas aqui porque elas foram escritas
-para código de aplicação, não para os scripts de build deste repo.
+por path local, então `npm run lint` exercita o caminho real de specifier — o
+loader do oxlint não resolve auto-referência de pacote. As duas regras mais
+agressivas ficam desligadas aqui porque elas foram escritas para código de
+aplicação, não para os scripts de build deste repo.
+
+> **Cuidado ao escrever seu config:** `no-inline-functions-objects-arrays` reprova
+> `defineConfig({ ... })`, porque o objeto literal é argumento de call. Declare
+> uma variável e passe para o `defineConfig`:
+>
+> ```ts
+> const config = { extends: [oxsome.recommended] };
+> export default defineConfig(config);
+> ```
 
 ## Publicação
 

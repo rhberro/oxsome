@@ -66,12 +66,12 @@ try {
   writeFileSync(
     join(sandbox, 'oxlint.config.ts'),
     [
-      "import { oxsomeRules, oxsomePluginEntry } from '@rhberro/oxsome';",
+      "import { oxsome } from '@rhberro/oxsome';",
       "import { defineConfig } from 'oxlint';",
       '',
       'export default defineConfig({',
-      '  extends: [oxsomeRules],',
-      '  jsPlugins: [oxsomePluginEntry],',
+      '  extends: [oxsome.recommended],',
+      "  jsPlugins: ['@rhberro/oxsome/plugin'],",
       '});',
       '',
     ].join('\n'),
@@ -145,12 +145,12 @@ try {
   writeFileSync(
     join(sandbox, 'oxlint.config.ts'),
     [
-      "import { oxsomeRules, oxsomePluginEntry } from '@rhberro/oxsome';",
+      "import { oxsome } from '@rhberro/oxsome';",
       "import { defineConfig } from 'oxlint';",
       '',
       'export default defineConfig({',
-      '  extends: [oxsomeRules],',
-      '  jsPlugins: [oxsomePluginEntry],',
+      '  extends: [oxsome.recommended],',
+      "  jsPlugins: ['@rhberro/oxsome/plugin'],",
       '  rules: {',
       "    'oxsome/no-arrow-functions': 'off',",
       '  },',
@@ -213,13 +213,26 @@ try {
     pluginOut,
   );
 
+  console.log('> meta.name must match what a bare-string jsPlugins entry produces');
+  const metaProbe = join(sandbox, 'meta-probe.mjs');
+  writeFileSync(
+    metaProbe,
+    "import plugin from '@rhberro/oxsome/plugin';\n" +
+      "if (plugin.meta?.name !== 'oxsome') { throw new Error('meta.name is ' + plugin.meta?.name); }\n" +
+      'console.log(plugin.meta.name);\n',
+  );
+  assert(
+    'plugin.meta.name is "oxsome" (rule prefix)',
+    run('node', [metaProbe], sandbox).trim().endsWith('oxsome'),
+  );
+
   console.log('> CommonJS interop (dist/cjs)');
   const cjs = join(sandbox, 'cjs-probe.cjs');
   writeFileSync(
     cjs,
-    'const { oxfmt, oxsomePluginEntry } = require("@rhberro/oxsome");\n' +
+    'const { oxfmt, oxsome } = require("@rhberro/oxsome");\n' +
       "if (oxfmt.printWidth !== 100) { throw new Error('bad cjs build'); }\n" +
-      "if (oxsomePluginEntry.specifier !== '@rhberro/oxsome/plugin') { throw new Error('bad entry'); }\n" +
+      "if (Object.keys(oxsome.recommended.rules).length !== 4) { throw new Error('bad recommended'); }\n" +
       "console.log('cjs ok');\n",
   );
   const cjsOut = run('node', [cjs], sandbox);
