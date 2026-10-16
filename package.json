@@ -21,6 +21,7 @@
     "url": "git+https://github.com/rhberro/oxsome.git"
   },
   "files": [
+    "CODING_STYLES.md",
     "dist"
   ],
   "type": "module",

@@ -141,21 +141,18 @@ Three cases are stricter than intended, all three are lint errors today:
 
 ## Coding agents
 
-If your project uses an AI agent, give it [`CODING_STYLES.md`](./CODING_STYLES.md). It states the four rules in prose with examples, which gives you validation in two places: the agent knows the rule before it writes a line, and the lint rules catch whatever slips through.
+The four rules ship as a document written for language models: [`CODING_STYLES.md`](./CODING_STYLES.md). One section per rule, each with valid and invalid examples. It installs with the package, so the document your agent reads is always the version that matches the linter your project actually runs.
 
-The file is self-contained: no paths back to this repository, no links to follow, nothing to resolve. Copy it into your project as `docs/CODING_STYLES.md` or paste it straight into your agent instructions, then point the agent at it:
+Point your agent at it from `AGENTS.md`:
 
-```md
-<!-- in AGENTS.md -->
+| Documentation  | Description                                                                             | When to consult                                     | Where                                                    |
+| -------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------- |
+| Coding Styles  | How functions, parameters, call arguments and JSX must be written.                        | Whenever writing, changing or reviewing code.        | `node_modules/@rhberro/oxsome/CODING_STYLES.md`          |
 
-| Coding Styles | How functions, parameters, call arguments and JSX must be written. | Whenever writing, changing or reviewing code. | `docs/CODING_STYLES.md` |
-```
+`AGENTS.md` is the convention most agents read, but the name does not matter much — `CLAUDE.md`, `.cursorrules` and `.github/copilot-instructions.md` work the same way, as long as the agent is told to consult it.
 
-`AGENTS.md` is the convention most agents read, but the name does not matter much — `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar files work just as well, as long as the agent is told to consult it.
+Do not paraphrase the rules in your own instructions. Point at the file instead, so there is one source of truth: when a rule changes or a defect is fixed, every project picks it up on the next dependency bump instead of drifting.
 
-Do not paraphrase the rules from memory in your own instructions. Point at the file instead, so there is one source of truth: when a rule changes or a defect is fixed, every project picks it up on the next update instead of drifting.
-
-Read the _Known limitations_ section before generating code. Three cases are stricter than intended, and an agent that has not seen them will write code the linter then rejects.
 
 ## Development
 
