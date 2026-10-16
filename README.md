@@ -1,44 +1,34 @@
 # @rhberro/oxsome
 
-Plugin de **oxlint** com 4 regras autorais, mais uma config compartilhada de
-**oxfmt**. Instale uma vez em cada projeto e pare de duplicar configuração.
+Four opinionated lint rules for [oxlint](https://oxc.rs/docs/guide/usage/linter.html), written in TypeScript against oxc's own AST types.
 
-As regras são TypeScript, tipadas com os nós da AST do oxc (`ESTree`) que o
-próprio `@oxlint/plugins` exporta. `tsc` compila para `dist/` — é o único passo
-de build.
+These are deliberately **aggressive** and **narrow**. They are not a general-purpose style guide and they are not trying to be one. They encode a few very specific opinions about how code should be shaped, opinions strong enough that most teams would argue with at least one of them:
 
-## As 4 regras
+- No arrow functions, anywhere.
+- No destructuring in a function signature.
+- No inline literals passed into calls.
+- No computation inside JSX.
 
-| Regra                                       | O que proíbe                                                                           |
-| ------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `oxsome/no-arrow-functions`                 | Arrow function em qualquer posição. Declare uma função nomeada e passe por referência. |
-| `oxsome/no-destructuring-in-params`         | Desestruturação na assinatura. Desestruture dentro do corpo.                           |
-| `oxsome/no-inline-functions-objects-arrays` | Funções, objetos e arrays inline como argumento de call ou prop de JSX.                |
-| `oxsome/no-jsx-inline-computation`          | Computação dentro de `{...}` em JSX. Extraia para uma constante nomeada.               |
+If any of those fights your codebase, turn that rule off — see [Using](#using). Nothing here is non-negotiable.
 
-`no-inline-functions-objects-arrays` aceita opções:
+## Contents
 
-```jsonc
-{
-  "rules": {
-    "oxsome/no-inline-functions-objects-arrays": [
-      "error",
-      {
-        "allowHooks": true, // permite `useEffect(() => ...)`, `useMemo(...)`, ...
-        "allowArrayCallbacks": true, // permite `.map(...)`, `.filter(...)`, ...
-      },
-    ],
-  },
-}
-```
+- [Installing](#installing)
+- [Using](#using)
+- [Rules](#rules)
+- [Development](#development)
+- [Publishing](#publishing)
+- [License](#license)
 
-`then` / `catch` / `finally` são sempre permitidos.
-
-## Uso
+## Installing
 
 ```sh
 npm install -D @rhberro/oxsome oxlint
 ```
+
+## Using
+
+Two entries, both required:
 
 ```ts
 // oxlint.config.ts
@@ -51,17 +41,13 @@ export default defineConfig({
 });
 ```
 
-> **Por que as duas linhas?** O `extends` do oxlint só herda `rules`, `plugins`
-> e `overrides` — `jsPlugins` não é herdável, então o caminho do plugin precisa
-> ser declarado no projeto. E `extends` com import de pacote só funciona em
-> `oxlint.config.ts`, nunca em `.oxlintrc.json`.
->
-> Sem o `jsPlugins` o oxlint falha alto (`Plugin 'oxsome' not found`). Sem o
-> `extends` ele roda em silêncio e não reporta nada.
+`extends` carries the rules. `jsPlugins` tells oxlint where the plugin lives — and oxlint's `extends` does not inherit `jsPlugins`, so it has to be declared per project. Both are mandatory, and they fail differently: omit `jsPlugins` and oxlint stops with `Plugin 'oxsome' not found`; omit `extends` and it runs silently, reporting nothing.
 
-### Sobrescrever regras
+This only works in `oxlint.config.ts`, never in `.oxlintrc.json`.
 
-O merge vai da esquerda para a direita, então regras locais vencem:
+### Turning rules off
+
+Local rules win, left to right:
 
 ```ts
 export default defineConfig({
@@ -73,43 +59,11 @@ export default defineConfig({
 });
 ```
 
-### Adicionar uma regra
+The list in `oxsome.recommended` is written by hand. Adding a rule to the plugin does not promote it to recommended — it stays opt-in until someone lists it.
 
-Jogue o arquivo em [`src/rules/`](./src/rules) e registre em
-[`src/plugin.ts`](./src/plugin.ts).
+### Formatting
 
-Ela **não** entra no `oxsome.recommended` sozinha: a lista é escrita à mão, de
-propósito. Uma regra nova nasce opt-in e só vira recommended quando você a
-adicionar em [`src/index.ts`](./src/index.ts). O compilador aceita os dois
-comportamentos — o que ele recusa é um **typo** no nome da regra.
-
-### Por que as regras precisam ser compiladas
-
-O oxlint aceita plugin `.ts` (o Node faz type-stripping), **mas só fora de
-`node_modules`**:
-
-```
-ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING:
-  Stripping types is currently unsupported for files under node_modules
-```
-
-Então um pacote publicado tem que entregar JS compilado. É o que o `tsc` faz —
-`dist/` é o que vai no npm, e `src/` fica de fora.
-
-### Cuidado ao escrever seu config
-
-`no-inline-functions-objects-arrays` reprova `defineConfig({ ... })`, porque o
-objeto literal vira argumento de call — e ela também vale para o próprio
-arquivo de config. Declare uma variável:
-
-```ts
-const config = { extends: [oxsome.recommended] };
-export default defineConfig(config);
-```
-
-## Format
-
-O `oxfmt` **não tem `extends`**, então cada projeto faz spread:
+[oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) has no `extends`, so spread the preset:
 
 ```sh
 npm install -D @rhberro/oxsome oxfmt
@@ -120,56 +74,196 @@ npm install -D @rhberro/oxsome oxfmt
 import { oxfmt } from '@rhberro/oxsome';
 import { defineConfig } from 'oxfmt';
 
-const config = { ...oxfmt };
-
-export default defineConfig(config);
+export default defineConfig({
+  ...oxfmt,
+});
 ```
 
-Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`,
-`trailingComma: "all"`, imports ordenados, `package.json` ordenado.
+Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`, `trailingComma: 'all'`, sorted imports, sorted `package.json`.
 
-## Desenvolvimento
+## Rules
+
+| Rule                                                                        | What it forbids                                                              |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [`no-arrow-functions`](#no-arrow-functions)                                 | Arrow functions in any position.                                             |
+| [`no-destructuring-in-params`](#no-destructuring-in-params)                 | Destructuring in a function signature.                                       |
+| [`no-inline-functions-objects-arrays`](#no-inline-functions-objects-arrays) | Function, object and array literals passed inline into a call or a JSX prop. |
+| [`no-jsx-inline-computation`](#no-jsx-inline-computation)                   | Expressions inside `{...}` in JSX.                                           |
+
+### no-arrow-functions
+
+Arrow functions hide the function's identity: you cannot name it, you cannot reference it later, and you cannot pass it around without re-creating it. Every arrow function has to be declared as a named function and passed by reference.
+
+Callbacks are included — including the ones people expect to be exempt.
+
+Invalid:
+
+```ts
+const double = (n: number) => n * 2;
+
+const ids = items.map((item) => item.id);
+
+<Button onClick={() => close()} />;
+```
+
+Valid:
+
+```ts
+function double(n: number) {
+  return n * 2;
+}
+
+function toId(item: Item) {
+  return item.id;
+}
+
+const ids = items.map(toId);
+```
+
+### no-destructuring-in-params
+
+Destructuring in a signature makes the function's contract invisible at the call site. Read the body to find out what the function actually needs.
+
+Invalid:
+
+```ts
+function Widget({ value }) {
+  return value;
+}
+
+function Greeting({ name } = {}) {
+  return name;
+}
+
+function first(...[head]) {
+  return head;
+}
+```
+
+Valid:
+
+```ts
+function Widget(props) {
+  const { value } = props;
+  return value;
+}
+```
+
+### no-inline-functions-objects-arrays
+
+A literal written inline is anonymous: there is no name for it, so it cannot be reused, tested, or memoized. Extract it to a named constant and pass the name.
+
+Invalid:
+
+```ts
+run({ retries: 2 });
+
+new Thing({ id: 1 });
+
+run(() => 1);
+
+<Box style={{ margin: 0 }} />;
+```
+
+Valid:
+
+```ts
+const options = { retries: 2 };
+run(options);
+
+items.map(toId);
+promise.then(unwrap);
+useEffect(setup, deps);
+```
+
+The callback argument is exempt when it belongs to a React hook, an array method (`map`, `filter`, `reduce`, ...) or a promise method (`then`, `catch`, `finally`). `NewExpression` is always checked.
+
+Options:
+
+```jsonc
+{
+  "rules": {
+    "oxsome/no-inline-functions-objects-arrays": [
+      "error",
+      {
+        "allowHooks": true, // false to also reject hook callbacks
+        "allowArrayCallbacks": true, // false to also reject array-method callbacks
+      },
+    ],
+  },
+}
+```
+
+### no-jsx-inline-computation
+
+JSX is a description of what is on screen, not the place where values get computed. Anything inside `{...}` should be a name you could read out loud.
+
+Invalid:
+
+```tsx
+<p>{props.value + 1}</p>;
+
+<p>{`total: ${props.value}`}</p>;
+```
+
+Valid:
+
+```tsx
+const total = props.value + 1;
+
+return <p>{total}</p>;
+return <p>{props.label}</p>;
+return <p>{'static text'}</p>;
+```
+
+Allowed inside `{}`: identifiers, member expressions, literals, nested JSX elements, and template literals without interpolation.
+
+### Known limitations
+
+Two cases behave worse than intended. Both are documented so they do not surprise you:
+
+- **React dependency arrays are flagged.** The hook exemption covers the callback, not the other arguments, so `useEffect(setup, [])` is reported on the `[]`. Hoist it: `const deps = []`.
+- **The `key` exemption does not apply.** `isJsxKeyAttribute` compares `name.type` against `'Identifier'`, but oxc types the attribute name as `JSXIdentifier`, so the check never matches and `key={() => 1}` is reported.
+
+## Development
 
 ```sh
 npm ci
 npm test
 ```
 
-`npm test` compila, roda o oxlint e o format check. Os dois configs deste repo
-apontam para `dist/`, então `prelint` compila antes — nada é lintado contra
-código velho.
+`npm test` builds with `tsc`, runs oxlint and checks formatting. The rules are TypeScript, typed against `ESTree` — the oxc AST types that `@oxlint/plugins` exports.
 
-O repo se dogfooda: as 4 regras valem aqui também (só
-`no-inline-functions-objects-arrays` fica desligada, porque reprovaria o
-próprio `defineConfig({ ... })`), e o `oxfmt.config.ts` faz spread do preset que
-o pacote exporta.
+The repo dogfoods the package: all four rules run here, and `oxfmt.config.ts` spreads the preset it ships.
 
-## Publicação
+To add a rule, drop the file in [`src/rules/`](./src/rules) and register it in [`src/plugin.ts`](./src/plugin.ts). It stays out of `oxsome.recommended` until you list it in [`src/index.ts`](./src/index.ts). The compiler rejects a typo in that list, but not a missing entry.
 
-Primeira vez, manual:
+### Why the rules are compiled
 
-```sh
-npm login
-npm run build
-npm publish --access public --provenance
+oxlint accepts TypeScript plugins — Node strips the types — but only outside `node_modules`:
+
+```
+ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING:
+  Stripping types is currently unsupported for files under node_modules
 ```
 
-`prepublishOnly` roda `npm test` (build + lint + format check), então publicar
-com regra quebrada falha.
+So a published package has to ship JavaScript. `tsc` builds `dist/`, which is what goes on npm; `src/` stays behind.
 
-Depois, publicar é só criar uma tag — a [workflow de publish](./.github/workflows/publish.yml)
-faz o resto via npm Trusted Publishing (OIDC, sem token no repositório):
+## Publishing
+
+Releases are driven by tags and authenticated with [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) — no npm token lives in this repository.
 
 ```sh
 npm version patch
 git push --follow-tags
 ```
 
-> Trusted Publishing precisa estar habilitado em npmjs.com → _Package settings_
-> → _Trusted Publisher_, apontando para o repo `rhberro/oxsome` e o workflow
-> `publish.yml`. Enquanto não estiver configurado, a primeira publicação tem que
-> ser manual.
+The workflow verifies the tag matches `package.json`, runs the test suite, and publishes. `prepublishOnly` also runs the suite, so a broken rule blocks the publish locally.
 
-## Licença
+npm propagates a new version to the registry over a few minutes — a `404` right after a successful run is normal, not a failure.
+
+Configure the trusted publisher on npmjs.com under _Package settings_ → _Trusted Publisher_, pointing at this repository and `publish.yml`, with `npm publish` allowed.
+
+## License
 
 MIT
