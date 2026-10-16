@@ -16,6 +16,7 @@ If any of those fights your codebase, turn that rule off — see [Using](#using)
 - [Installing](#installing)
 - [Using](#using)
 - [Rules](#rules)
+- [Coding agents](#coding-agents)
 - [Development](#development)
 - [Publishing](#publishing)
 - [License](#license)
@@ -224,6 +225,24 @@ Two cases behave worse than intended. Both are documented so they do not surpris
 
 - **React dependency arrays are flagged.** The hook exemption covers the callback, not the other arguments, so `useEffect(setup, [])` is reported on the `[]`. Hoist it: `const deps = []`.
 - **The `key` exemption does not apply.** `isJsxKeyAttribute` compares `name.type` against `'Identifier'`, but oxc types the attribute name as `JSXIdentifier`, so the check never matches and `key={() => 1}` is reported.
+
+## Coding agents
+
+If your project uses an AI agent, point it at [`CODING_STYLES.md`](./CODING_STYLES.md). The file states the same four rules in prose with examples, which gives you validation in two places: the agent knows the rule before it writes a line, and the lint rules catch whatever slips through.
+
+Copy it into your project, or reference it straight from the repository:
+
+```md
+<!-- in AGENTS.md -->
+
+| Coding Styles | How functions, parameters, call arguments and JSX must be written. | Whenever writing, changing or reviewing code. | `docs/CODING_STYLES.md` |
+```
+
+`AGENTS.md` is the convention most agents read, but the name does not matter much — `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar files work just as well, as long as the agent is told to consult it.
+
+Do not paraphrase the rules from memory in your own instructions file. Point at [`CODING_STYLES.md`](./CODING_STYLES.md) instead, so there is a single source of truth: when a rule changes or a defect is fixed, every project picks it up on the next update instead of drifting.
+
+That file also carries a _Known limitations_ section. Read it before generating code — two cases are stricter than intended, and an agent that has not seen them will write code the linter then rejects.
 
 ## Development
 
