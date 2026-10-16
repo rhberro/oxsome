@@ -1,8 +1,23 @@
-import type { OxlintConfig } from 'oxlint';
+import plugin, { type RuleName } from './plugin.js';
 
-import plugin from './plugin.js';
+type PluginRuleName = `oxsome/${RuleName}`;
 
-const RULE_NAMES = Object.keys(plugin.rules);
+/**
+ * The rules `oxsome.recommended` turns on.
+ *
+ * Hand-written on purpose: adding a rule to `src/plugin.ts` must NOT silently
+ * promote it to recommended. A new rule stays opt-in until it is listed here.
+ *
+ * `satisfies Partial<Record<PluginRuleName, 'error'>>` keeps the list honest
+ * without forcing completeness -- a typo fails the build, a missing rule does
+ * not.
+ */
+const RECOMMENDED_RULES = {
+  'oxsome/no-arrow-functions': 'error',
+  'oxsome/no-destructuring-in-params': 'error',
+  'oxsome/no-inline-functions-objects-arrays': 'error',
+  'oxsome/no-jsx-inline-computation': 'error',
+} satisfies Partial<Record<PluginRuleName, 'error'>>;
 
 /**
  * Named presets, following the `plugin.configs.recommended` convention from
@@ -11,19 +26,10 @@ const RULE_NAMES = Object.keys(plugin.rules);
  * oxlint has no equivalent: `extends` only accepts file paths (JSON) or
  * imported objects (TS), never a plugin name. Hence the export here.
  */
-export const oxsome: { recommended: OxlintConfig } = {
-  /**
-   * Every rule in the plugin, enabled as an error.
-   *
-   * Built from the plugin itself, so adding a rule to `src/rules/` and
-   * registering it in `src/plugin.ts` is enough to have it show up here.
-   */
+export const oxsome = {
+  /** The rules listed above, enabled as errors. */
   recommended: {
-    rules: Object.fromEntries(
-      RULE_NAMES.map(function toRule(name: string): [string, 'error'] {
-        return [`oxsome/${name}`, 'error'];
-      }),
-    ) as OxlintConfig['rules'],
+    rules: RECOMMENDED_RULES,
   },
 };
 

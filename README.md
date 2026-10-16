@@ -76,8 +76,12 @@ export default defineConfig({
 ### Adicionar uma regra
 
 Jogue o arquivo em [`src/rules/`](./src/rules) e registre em
-[`src/plugin.ts`](./src/plugin.ts). O `oxsome.recommended` é gerado a partir das
-chaves do plugin, então a regra nova entra sozinha — sem mexer em mais nada.
+[`src/plugin.ts`](./src/plugin.ts).
+
+Ela **não** entra no `oxsome.recommended` sozinha: a lista é escrita à mão, de
+propósito. Uma regra nova nasce opt-in e só vira recommended quando você a
+adicionar em [`src/index.ts`](./src/index.ts). O compilador aceita os dois
+comportamentos — o que ele recusa é um **typo** no nome da regra.
 
 ### Por que as regras precisam ser compiladas
 
