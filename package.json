@@ -1,7 +1,7 @@
 {
   "name": "@rhberro/oxsome",
   "version": "0.1.0",
-  "description": "Shared oxlint + oxfmt configuration, consumed via `extends` so projects don't carry their own rule set.",
+  "description": "Custom oxlint plugin (4 opinionated rules) plus a shared oxfmt config, so projects stop carrying their own rule set.",
   "keywords": [
     "config",
     "format",
@@ -9,6 +9,7 @@
     "oxc",
     "oxfmt",
     "oxlint",
+    "oxlint-plugin",
     "shareable-config",
     "typescript"
   ],
@@ -40,6 +41,16 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
+    "./plugin": {
+      "import": {
+        "types": "./dist/esm/plugin/index.d.ts",
+        "default": "./dist/esm/plugin/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/plugin/index.d.cts",
+        "default": "./dist/cjs/plugin/index.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -53,6 +64,9 @@
     "verify": "node scripts/verify.mjs",
     "test": "npm run typecheck && npm run lint && npm run format:check && npm run build && npm run verify",
     "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@oxlint/plugins": "^1.88.0"
   },
   "devDependencies": {
     "oxfmt": "^0.73.0",

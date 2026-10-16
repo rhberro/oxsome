@@ -1,46 +1,94 @@
 # @rhberro/oxsome
 
-Configuração compartilhada de **oxlint** e **oxfmt**. Instale uma vez em cada
-projeto e passe a herdar as mesmas regras, sem duplicar configuração.
+Um plugin de **oxlint** com 4 regras autorais, mais uma config compartilhada de
+**oxfmt**. Instale uma vez em cada projeto e pare de duplicar configuração.
 
-- Zero dependências em runtime — o pacote só exporta objetos de configuração.
-- TypeScript com `.d.ts`, build dual (ESM + CJS).
-- Publicado como `@rhberro/oxsome` no npm.
+- Plugin JS para oxlint, carregado por specifier de pacote.
+- Config de formatação via spread.
+- Build dual (ESM + CJS) com tipos. Uma dependência de runtime
+  (`@oxlint/plugins`).
+
+## As 4 regras
+
+| Regra                                       | O que proíbe                                                                           |
+| ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `oxsome/no-arrow-functions`                 | Arrow function em qualquer posição. Declare uma função nomeada e passe por referência. |
+| `oxsome/no-destructuring-in-params`         | Desestruturação na assinatura. Desestruture dentro do corpo.                           |
+| `oxsome/no-inline-functions-objects-arrays` | Funções, objetos e arrays inline como argumento de call ou prop de JSX.                |
+| `oxsome/no-jsx-inline-computation`          | Computação dentro de `{...}` em JSX. Extraia para uma constante nomeada.               |
+
+`no-inline-functions-objects-arrays` aceita opções:
+
+```jsonc
+{
+  "rules": {
+    "oxsome/no-inline-functions-objects-arrays": [
+      "error",
+      {
+        "allowHooks": true, // permite `useEffect(() => ...)`, `useMemo(...)`, ...
+        "allowArrayCallbacks": true, // permite `.map(...)`, `.filter(...)`, ...
+      },
+    ],
+  },
+}
+```
+
+`then` / `catch` / `finally` são sempre permitidos.
 
 ## Uso
 
 ```sh
-npm install -D @rhberro/oxsome oxlint oxfmt
+npm install -D @rhberro/oxsome oxlint
 ```
-
-### Lint
-
-O `oxlint` suporta `extends` com objeto importado de um pacote, mas **apenas em
-`oxlint.config.ts`** (não funciona em `.oxlintrc.json`).
 
 ```ts
 // oxlint.config.ts
-import { oxlint } from '@rhberro/oxsome';
+import { oxsomeRules, oxsomePluginEntry } from '@rhberro/oxsome';
 import { defineConfig } from 'oxlint';
 
 export default defineConfig({
-  extends: [oxlint],
+  extends: [oxsomeRules],
+  jsPlugins: [oxsomePluginEntry],
+});
+```
 
-  // `env` e `globals` NÃO são herdados — defina por projeto.
-  env: { browser: true },
-  globals: { React: 'readonly' },
+> **Por que as duas linhas?** O `extends` do oxlint só herda `rules`, `plugins`
+> e `overrides`. `jsPlugins` **não** é herdável, então o caminho do plugin
+> precisa ser declarado no projeto. E `extends` com import de pacote só
+> funciona em `oxlint.config.ts`, nunca em `.oxlintrc.json`.
 
-  // Suas regras locais sobrescrevem as do pacote (merge da esquerda para a direita).
+### Sobrescrever regras
+
+O merge vai da esquerda para a direita, então regras locais vencem:
+
+```ts
+export default defineConfig({
+  extends: [oxsomeRules],
+  jsPlugins: [oxsomePluginEntry],
   rules: {
-    'no-console': 'off',
+    'oxsome/no-arrow-functions': 'off',
   },
 });
 ```
 
-### Format
+### Aliasar o plugin
 
-O `oxfmt` **não tem `extends`**. Cada projeto precisa de um
-`oxfmt.config.ts` que faz spread do objeto:
+O namespace das regras vem do `name` da entrada em `jsPlugins`. Se preferir
+outro prefixo:
+
+```ts
+jsPlugins: [{ name: "house-style", specifier: "@rhberro/oxsome/plugin" }],
+```
+
+e as regras passam a ser `house-style/no-arrow-functions`.
+
+## Format
+
+O `oxfmt` **não tem `extends`**, então cada projeto faz spread:
+
+```sh
+npm install -D @rhberro/oxsome oxfmt
+```
 
 ```ts
 // oxfmt.config.ts
@@ -49,13 +97,14 @@ import { defineConfig } from 'oxfmt';
 
 export default defineConfig({
   ...oxfmt,
-
-  // suas opções por cima
-  printWidth: 120,
+  printWidth: 120, // suas opções por cima
 });
 ```
 
-### Scripts
+Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`,
+`trailingComma: "all"`, imports ordenados, `package.json` ordenado.
+
+## Scripts
 
 ```jsonc
 {
@@ -68,36 +117,6 @@ export default defineConfig({
 }
 ```
 
-## O que é herdado (e o que não é)
-
-O `extends` do oxlint mescla somente três campos:
-
-| Campo            | Herdado via `extends` |
-| ---------------- | --------------------- |
-| `rules`          | ✅                    |
-| `plugins`        | ✅                    |
-| `overrides`      | ✅                    |
-| `env`            | ❌                    |
-| `globals`        | ❌                    |
-| `settings`       | ❌                    |
-| `categories`     | ❌                    |
-| `options`        | ❌                    |
-| `ignorePatterns` | ❌                    |
-
-Isso é intencional: `env` e `globals` dependem do runtime do projeto (browser,
-node, workers), então ficam com o consumidor.
-
-## O preset
-
-- Plugins: `eslint`, `oxc`, `unicorn`, `promise`, `import`
-- Regras focadas em **correção**, não em estilo — estilo é território do
-  `oxfmt`, e duplicar as duas coisas só gera churn.
-- Formatação: `printWidth: 100`, `semi: true`, `singleQuote: true`,
-  `trailingComma: "all"`, imports ordenados, `package.json` ordenado.
-
-Edite [`src/lint/index.ts`](./src/lint/index.ts) e
-[`src/format/index.ts`](./src/format/index.ts) para mudar as regras.
-
 ## Desenvolvimento
 
 ```sh
@@ -106,13 +125,25 @@ npm test
 ```
 
 `npm test` roda typecheck, lint, format check, build e o `npm run verify`, que
-empacota o pacote, instala o tarball num projeto temporário e executa
-`oxlint`/`oxfmt` de verdade lá dentro. É o que garante que a publishes não
-quebra na hora de consumir.
+empacota o pacote, instala o tarball num projeto temporário e roda
+`oxlint`/`oxfmt` de verdade lá dentro — incluindo um arquivo que viola as 4
+regras e um que cumpre todas. É o que garante que a publicação não quebra na
+hora de consumir.
+
+As regras vivem em [`src/rules/`](./src/rules) e são JS puro, sem etapa de
+build. Para mudar o comportamento de alguma delas, edite o arquivo e rode
+`npm test`.
+
+### Como o repo se dogfooda
+
+O [`oxlint.config.ts`](./oxlint.config.ts) deste repo carrega o próprio plugin
+por path local, então `npm run lint` exercita o caminho real de specifier. As
+duas regras mais agressivas ficam desligadas aqui porque elas foram escritas
+para código de aplicação, não para os scripts de build deste repo.
 
 ## Publicação
 
-Publicação manual (primeira vez):
+Primeira vez, manual:
 
 ```sh
 npm login
@@ -120,18 +151,18 @@ npm run build
 npm publish --access public --provenance
 ```
 
-Depois disso, publicar é só criar uma tag — a [workflow de publish](./.github/workflows/publish.yml)
+Depois, publicar é só criar uma tag — a [workflow de publish](./.github/workflows/publish.yml)
 faz o resto via npm Trusted Publishing (OIDC, sem token no repositório):
 
 ```sh
-npm version patch   # commita a tag v0.1.1
+npm version patch
 git push --follow-tags
 ```
 
-> Trusted Publishing precisa estar habilitado em
-> npmjs.com → _Package settings_ → _Trusted Publisher_, apontando para o repo
-> `rhberro/oxsome` e o workflow `publish.yml`. Enquanto não estiver
-> configurado, a primeira publicação tem que ser manual.
+> Trusted Publishing precisa estar habilitado em npmjs.com → _Package settings_
+> → _Trusted Publisher_, apontando para o repo `rhberro/oxsome` e o workflow
+> `publish.yml`. Enquanto não estiver configurado, a primeira publicação tem que
+> ser manual.
 
 ## Licença
 

@@ -9,7 +9,7 @@
  * Run with `npm run verify` (after `npm run build`).
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -54,6 +54,7 @@ try {
     JSON.stringify({ name: 'consumer', private: true, version: '0.0.0', type: 'module' }, null, 2),
   );
 
+  // oxlint honors .gitignore, so keep dependencies out of the lint run.
   writeFileSync(join(sandbox, '.gitignore'), 'node_modules\n');
 
   run(
@@ -65,11 +66,12 @@ try {
   writeFileSync(
     join(sandbox, 'oxlint.config.ts'),
     [
-      'import { oxlint } from "@rhberro/oxsome";',
-      'import { defineConfig } from "oxlint";',
+      "import { oxsomeRules, oxsomePluginEntry } from '@rhberro/oxsome';",
+      "import { defineConfig } from 'oxlint';",
       '',
       'export default defineConfig({',
-      '  extends: [oxlint],',
+      '  extends: [oxsomeRules],',
+      '  jsPlugins: [oxsomePluginEntry],',
       '});',
       '',
     ].join('\n'),
@@ -78,8 +80,8 @@ try {
   writeFileSync(
     join(sandbox, 'oxfmt.config.ts'),
     [
-      'import { oxfmt } from "@rhberro/oxsome";',
-      'import { defineConfig } from "oxfmt";',
+      "import { oxfmt } from '@rhberro/oxsome';",
+      "import { defineConfig } from 'oxfmt';",
       '',
       'export default defineConfig({',
       '  ...oxfmt,',
@@ -88,63 +90,81 @@ try {
     ].join('\n'),
   );
 
-  // Violates eslint/no-self-compare, unicorn/throw-new-error and
-  // promise/always-return from the shared preset. `unicorn`/`promise` plugins
-  // are only enabled by that preset, so firing on them proves it was applied.
+  // One violation per rule, all in a single file.
   writeFileSync(
-    join(sandbox, 'bad.ts'),
+    join(sandbox, 'bad.tsx'),
     [
-      'const x = 1;',
-      'if (x === x) {',
-      "  throw Error('boom');",
+      'export function Widget({ value }) {',
+      '  return <p>{value + 1}</p>;',
       '}',
-      'export const pending = new Promise((resolve) => resolve(x)).then(() => {',
-      '  console.log("done");',
+      '',
+      'export const inline = run(() => 1, { retries: 2 });',
+      '',
+    ].join('\n'),
+  );
+
+  writeFileSync(
+    join(sandbox, 'good.tsx'),
+    [
+      'export function Widget(props) {',
+      '  const total = props.value + 1;',
+      '  return <p>{total}</p>;',
+      '}',
+      '',
+      'function increment() {',
+      '  return 1;',
+      '}',
+      '',
+      'const options = { retries: 2 };',
+      '',
+      'export const inline = run(increment, options);',
+      '',
+    ].join('\n'),
+  );
+
+  console.log('> oxlint: every rule must fire on bad.tsx');
+  const lint = runExpectFailure('npx', ['--no-install', 'oxlint', 'bad.tsx'], sandbox);
+  const lintOutput = lint.output;
+
+  assert('oxlint ran', lintOutput.length > 0, lintOutput);
+  for (const rule of [
+    'no-arrow-functions',
+    'no-destructuring-in-params',
+    'no-inline-functions-objects-arrays',
+    'no-jsx-inline-computation',
+  ]) {
+    assert(`rule oxsome/${rule} fired`, lintOutput.includes(`oxsome(${rule})`), lintOutput);
+  }
+  assert('exit code signals lint errors', lint.ok === false, lintOutput);
+
+  console.log('> oxlint: good.tsx must pass');
+  const clean = runExpectFailure('npx', ['--no-install', 'oxlint', 'good.tsx'], sandbox);
+  assert('compliant file passes', clean.ok === true, clean.output);
+
+  console.log('> oxlint: per-project override must win over extends');
+  writeFileSync(
+    join(sandbox, 'oxlint.config.ts'),
+    [
+      "import { oxsomeRules, oxsomePluginEntry } from '@rhberro/oxsome';",
+      "import { defineConfig } from 'oxlint';",
+      '',
+      'export default defineConfig({',
+      '  extends: [oxsomeRules],',
+      '  jsPlugins: [oxsomePluginEntry],',
+      '  rules: {',
+      "    'oxsome/no-arrow-functions': 'off',",
+      '  },',
       '});',
       '',
     ].join('\n'),
   );
-
-  writeFileSync(
-    join(sandbox, 'good.ts'),
-    [
-      'const x = 1;',
-      'if (x === 2) {',
-      "  throw new TypeError('boom');",
-      '}',
-      'export const ok = x;',
-      '',
-    ].join('\n'),
-  );
-
-  console.log('> oxlint (expects failures on bad.ts, clean on good.ts)');
-  const lint = runExpectFailure('npx', ['--no-install', 'oxlint'], sandbox);
-  const lintOutput = lint.output;
-
-  assert('oxlint ran', lintOutput.length > 0, lintOutput);
+  const overridden = runExpectFailure('npx', ['--no-install', 'oxlint', 'bad.tsx'], sandbox);
   assert(
-    'preset rule eslint/no-self-compare fired',
-    lintOutput.includes('no-self-compare'),
-    lintOutput,
+    'rule can be disabled locally',
+    !overridden.output.includes('oxsome(no-arrow-functions)') &&
+      overridden.output.includes('oxsome(no-jsx-inline-computation)'),
+    overridden.output,
   );
-  // `unicorn` and `promise` plugins are only enabled by our preset, so a rule
-  // from those scopes firing proves the package config was really loaded.
-  assert(
-    'preset rule unicorn/throw-new-error fired',
-    lintOutput.includes('unicorn(throw-new-error)'),
-    lintOutput,
-  );
-  assert(
-    'preset rule promise/always-return fired',
-    lintOutput.includes('promise(always-return)'),
-    lintOutput,
-  );
-  assert('exit code signals lint errors', lint.ok === false, lintOutput);
-
-  console.log('> oxlint on a clean file only');
-  rmSync(join(sandbox, 'bad.ts'));
-  const clean = runExpectFailure('npx', ['--no-install', 'oxlint'], sandbox);
-  assert('clean file passes', clean.ok === true, clean.output);
 
   console.log('> oxfmt (single quotes + sorted imports must come from the preset)');
   writeFileSync(
@@ -158,9 +178,7 @@ try {
   );
   run('npx', ['--no-install', 'oxfmt', 'fmt.ts'], sandbox);
 
-  const formatted = await import('node:fs').then((fs) =>
-    fs.readFileSync(join(sandbox, 'fmt.ts'), 'utf8'),
-  );
+  const formatted = readFileSync(join(sandbox, 'fmt.ts'), 'utf8');
 
   assert('singleQuote applied', formatted.includes("'double'"), formatted);
   assert(
@@ -179,12 +197,29 @@ try {
   const check = runExpectFailure('npx', ['--no-install', 'oxfmt', '--check', '.'], sandbox);
   assert('format:check clean', check.ok === true, check.output);
 
+  console.log('> subpath exports resolve');
+  const pluginProbe = join(sandbox, 'plugin-probe.mjs');
+  writeFileSync(
+    pluginProbe,
+    "import plugin from '@rhberro/oxsome/plugin';\n" +
+      'const names = Object.keys(plugin.rules ?? {});\n' +
+      "if (names.length !== 4) { throw new Error('expected 4 rules, got ' + names.length); }\n" +
+      "console.log(names.sort().join(','));\n",
+  );
+  const pluginOut = run('node', [pluginProbe], sandbox);
+  assert(
+    '@rhberro/oxsome/plugin exports 4 rules',
+    pluginOut.trim().split('\n').at(-1).split(',').length === 4,
+    pluginOut,
+  );
+
   console.log('> CommonJS interop (dist/cjs)');
   const cjs = join(sandbox, 'cjs-probe.cjs');
   writeFileSync(
     cjs,
-    'const { oxlint, oxfmt } = require("@rhberro/oxsome");\n' +
-      "if (!oxlint.rules || oxfmt.printWidth !== 100) { throw new Error('bad cjs build'); }\n" +
+    'const { oxfmt, oxsomePluginEntry } = require("@rhberro/oxsome");\n' +
+      "if (oxfmt.printWidth !== 100) { throw new Error('bad cjs build'); }\n" +
+      "if (oxsomePluginEntry.specifier !== '@rhberro/oxsome/plugin') { throw new Error('bad entry'); }\n" +
       "console.log('cjs ok');\n",
   );
   const cjsOut = run('node', [cjs], sandbox);
