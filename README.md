@@ -7,12 +7,12 @@ JS puro, sem etapa de build. O que está em `src/` é exatamente o que é public
 
 ## As 4 regras
 
-| Regra | O que proíbe |
-| --- | --- |
-| `oxsome/no-arrow-functions` | Arrow function em qualquer posição. Declare uma função nomeada e passe por referência. |
-| `oxsome/no-destructuring-in-params` | Desestruturação na assinatura. Desestruture dentro do corpo. |
-| `oxsome/no-inline-functions-objects-arrays` | Funções, objetos e arrays inline como argumento de call ou prop de JSX. |
-| `oxsome/no-jsx-inline-computation` | Computação dentro de `{...}` em JSX. Extraia para uma constante nomeada. |
+| Regra                                       | O que proíbe                                                                           |
+| ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `oxsome/no-arrow-functions`                 | Arrow function em qualquer posição. Declare uma função nomeada e passe por referência. |
+| `oxsome/no-destructuring-in-params`         | Desestruturação na assinatura. Desestruture dentro do corpo.                           |
+| `oxsome/no-inline-functions-objects-arrays` | Funções, objetos e arrays inline como argumento de call ou prop de JSX.                |
+| `oxsome/no-jsx-inline-computation`          | Computação dentro de `{...}` em JSX. Extraia para uma constante nomeada.               |
 
 `no-inline-functions-objects-arrays` aceita opções:
 
@@ -23,10 +23,10 @@ JS puro, sem etapa de build. O que está em `src/` é exatamente o que é public
       "error",
       {
         "allowHooks": true, // permite `useEffect(() => ...)`, `useMemo(...)`, ...
-        "allowArrayCallbacks": true // permite `.map(...)`, `.filter(...)`, ...
-      }
-    ]
-  }
+        "allowArrayCallbacks": true, // permite `.map(...)`, `.filter(...)`, ...
+      },
+    ],
+  },
 }
 ```
 
@@ -40,12 +40,12 @@ npm install -D @rhberro/oxsome oxlint
 
 ```ts
 // oxlint.config.ts
-import { oxsome } from "@rhberro/oxsome";
-import { defineConfig } from "oxlint";
+import { oxsome } from '@rhberro/oxsome';
+import { defineConfig } from 'oxlint';
 
 export default defineConfig({
   extends: [oxsome.recommended],
-  jsPlugins: ["@rhberro/oxsome/plugin"],
+  jsPlugins: ['@rhberro/oxsome/plugin'],
 });
 ```
 
@@ -64,9 +64,9 @@ O merge vai da esquerda para a direita, então regras locais vencem:
 ```ts
 export default defineConfig({
   extends: [oxsome.recommended],
-  jsPlugins: ["@rhberro/oxsome/plugin"],
+  jsPlugins: ['@rhberro/oxsome/plugin'],
   rules: {
-    "oxsome/no-arrow-functions": "off",
+    'oxsome/no-arrow-functions': 'off',
   },
 });
 ```
@@ -98,8 +98,8 @@ npm install -D @rhberro/oxsome oxfmt
 
 ```ts
 // oxfmt.config.ts
-import { oxfmt } from "@rhberro/oxsome";
-import { defineConfig } from "oxfmt";
+import { oxfmt } from '@rhberro/oxsome';
+import { defineConfig } from 'oxfmt';
 
 const config = { ...oxfmt };
 
@@ -126,8 +126,8 @@ npm version patch
 git push --follow-tags
 ```
 
-> Trusted Publishing precisa estar habilitado em npmjs.com → *Package settings*
-> → *Trusted Publisher*, apontando para o repo `rhberro/oxsome` e o workflow
+> Trusted Publishing precisa estar habilitado em npmjs.com → _Package settings_
+> → _Trusted Publisher_, apontando para o repo `rhberro/oxsome` e o workflow
 > `publish.yml`. Enquanto não estiver configurado, a primeira publicação tem que
 > ser manual.
 

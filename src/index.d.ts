@@ -12,7 +12,7 @@ export declare const oxsome: {
    * ```
    */
   readonly recommended: {
-    rules: Record<string, "error">;
+    rules: Record<string, 'error'>;
   };
 };
 
@@ -24,16 +24,16 @@ export declare const oxfmt: {
   semi: boolean;
   singleQuote: boolean;
   jsxSingleQuote: boolean;
-  trailingComma: "all" | "es5" | "none";
+  trailingComma: 'all' | 'es5' | 'none';
   bracketSpacing: boolean;
   bracketSameLine: boolean;
-  arrowParens: "always" | "avoid";
-  endOfLine: "lf" | "crlf" | "cr";
+  arrowParens: 'always' | 'avoid';
+  endOfLine: 'lf' | 'crlf' | 'cr';
   insertFinalNewline: boolean;
-  objectWrap: "preserve" | "collapse";
-  quoteProps: "as-needed" | "consistent" | "preserve";
+  objectWrap: 'preserve' | 'collapse';
+  quoteProps: 'as-needed' | 'consistent' | 'preserve';
   sortImports: {
-    order: "asc" | "desc";
+    order: 'asc' | 'desc';
     ignoreCase: boolean;
     newlinesBetween: boolean;
     internalPattern: string[];

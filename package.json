@@ -2,12 +2,29 @@
   "name": "@rhberro/oxsome",
   "version": "0.1.0",
   "description": "Custom oxlint plugin (4 opinionated rules) plus a shared oxfmt config.",
+  "keywords": [
+    "config",
+    "eslint-plugin",
+    "oxc",
+    "oxfmt",
+    "oxlint",
+    "oxlint-plugin",
+    "shareable-config"
+  ],
+  "homepage": "https://github.com/rhberro/oxsome#readme",
+  "bugs": {
+    "url": "https://github.com/rhberro/oxsome/issues"
+  },
   "license": "MIT",
-  "type": "module",
-  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhberro/oxsome.git"
+  },
   "files": [
     "src"
   ],
+  "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
@@ -19,27 +36,18 @@
     },
     "./package.json": "./package.json"
   },
+  "scripts": {
+    "typecheck": "tsc",
+    "prepublishOnly": "npm run typecheck"
+  },
   "dependencies": {
     "@oxlint/plugins": "^1.86.0"
   },
+  "devDependencies": {
+    "oxfmt": "^0.73.0",
+    "typescript": "^7.0.2"
+  },
   "peerDependencies": {
     "oxlint": ">=1.86.0"
-  },
-  "keywords": [
-    "oxc",
-    "oxfmt",
-    "oxlint",
-    "oxlint-plugin",
-    "eslint-plugin",
-    "config",
-    "shareable-config"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rhberro/oxsome.git"
-  },
-  "bugs": {
-    "url": "https://github.com/rhberro/oxsome/issues"
-  },
-  "homepage": "https://github.com/rhberro/oxsome#readme"
+  }
 }

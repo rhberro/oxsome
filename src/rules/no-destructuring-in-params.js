@@ -1,9 +1,19 @@
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
 function isPattern(node) {
   return node && (node.type === 'ObjectPattern' || node.type === 'ArrayPattern');
 }
 
 export default {
+  /**
+   * @param {any} context
+   */
   createOnce(context) {
+    /**
+     * @param {any[]} params
+     */
     function checkParams(params) {
       for (const param of params) {
         if (isPattern(param)) {
@@ -23,15 +33,27 @@ export default {
       }
     }
     return {
+      /**
+       * @param {any} node
+       */
       ArrowFunctionExpression(node) {
         checkParams(node.params);
       },
+      /**
+       * @param {any} node
+       */
       FunctionDeclaration(node) {
         checkParams(node.params);
       },
+      /**
+       * @param {any} node
+       */
       FunctionExpression(node) {
         checkParams(node.params);
       },
+      /**
+       * @param {any} node
+       */
       MethodDefinition(node) {
         const value = node.value;
         if (
@@ -41,6 +63,9 @@ export default {
           checkParams(value.params);
         }
       },
+      /**
+       * @param {any} node
+       */
       PropertyDefinition(node) {
         const value = node.value;
         if (

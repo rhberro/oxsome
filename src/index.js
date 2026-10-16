@@ -1,4 +1,4 @@
-import plugin from "./plugin.js";
+import plugin from './plugin.js';
 
 const RULE_NAMES = Object.keys(plugin.rules);
 
@@ -17,7 +17,7 @@ export const oxsome = {
    * have it show up here.
    */
   recommended: {
-    rules: Object.fromEntries(RULE_NAMES.map((name) => [`oxsome/${name}`, "error"])),
+    rules: Object.fromEntries(RULE_NAMES.map((name) => [`oxsome/${name}`, 'error'])),
   },
 };
 
@@ -36,19 +36,19 @@ export const oxfmt = {
   semi: true,
   singleQuote: true,
   jsxSingleQuote: false,
-  trailingComma: "all",
+  trailingComma: 'all',
   bracketSpacing: true,
   bracketSameLine: false,
-  arrowParens: "always",
-  endOfLine: "lf",
+  arrowParens: 'always',
+  endOfLine: 'lf',
   insertFinalNewline: true,
-  objectWrap: "preserve",
-  quoteProps: "as-needed",
+  objectWrap: 'preserve',
+  quoteProps: 'as-needed',
   sortImports: {
-    order: "asc",
+    order: 'asc',
     ignoreCase: true,
     newlinesBetween: true,
-    internalPattern: ["~/", "@/", "#"],
+    internalPattern: ['~/', '@/', '#'],
   },
   sortPackageJson: {
     sortScripts: false,

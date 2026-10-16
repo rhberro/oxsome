@@ -1,10 +1,20 @@
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
 function isSimpleTemplateLiteral(node) {
   return node.type === 'TemplateLiteral' && node.expressions.length === 0;
 }
 
 export default {
+  /**
+   * @param {any} context
+   */
   createOnce(context) {
     return {
+      /**
+       * @param {any} node
+       */
       JSXExpressionContainer(node) {
         const { expression } = node;
         if (!expression || expression.type === 'JSXEmptyExpression') {
