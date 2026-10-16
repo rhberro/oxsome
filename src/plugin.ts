@@ -9,8 +9,11 @@ import noJsxInlineComputation from './rules/no-jsx-inline-computation.js';
  * Declared separately so the rule names stay literal types. `eslintCompatPlugin`
  * returns `Plugin`, whose `rules` is `Record<string, Rule>` -- that would widen
  * every key to `string` and make a typo guard in `recommended` useless.
+ *
+ * Exported so `oxsome.all` can be built from the real keys instead of
+ * guessing which rules exist.
  */
-const RULES = {
+export const RULES = {
   'no-arrow-functions': noArrowFunctions,
   'no-destructuring-in-params': noDestructuringInParams,
   'no-inline-functions-objects-arrays': noInlineFunctionsObjectsArrays,

@@ -1,4 +1,4 @@
-import plugin, { type RuleName } from './plugin.js';
+import plugin, { RULES, type RuleName } from './plugin.js';
 
 type PluginRuleName = `oxsome/${RuleName}`;
 
@@ -26,10 +26,29 @@ const RECOMMENDED_RULES = {
  * oxlint has no equivalent: `extends` only accepts file paths (JSON) or
  * imported objects (TS), never a plugin name. Hence the export here.
  */
+/**
+ * Every rule the plugin ships, enabled as errors.
+ *
+ * Derived from the plugin itself, the opposite of `recommended`: a rule added
+ * to `src/plugin.ts` joins `all` on its own, with no edit here. Use it when you
+ * want the package's full opinion rather than its curated default.
+ */
+const ALL_RULES = Object.fromEntries(
+  (Object.keys(RULES) as RuleName[]).map(function toRule(
+    name: RuleName,
+  ): [PluginRuleName, 'error'] {
+    return [`oxsome/${name}`, 'error'];
+  }),
+) as Record<PluginRuleName, 'error'>;
+
 export const oxsome = {
-  /** The rules listed above, enabled as errors. */
+  /** The curated rules listed above, enabled as errors. */
   recommended: {
     rules: RECOMMENDED_RULES,
+  },
+  /** Every rule in the plugin, enabled as errors. */
+  all: {
+    rules: ALL_RULES,
   },
 };
 

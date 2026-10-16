@@ -12,7 +12,7 @@ Point your agent at this file from the project's `AGENTS.md`. The lint rules are
 | Coding Styles | Code conventions: how functions, parameters, call arguments and JSX must be written. | Whenever writing, changing or reviewing code. | `docs/CODING_STYLES.md` |
 ```
 
-A project only needs its own copy of the sections that apply. Keep this file in sync with `oxsome.recommended` in [`src/index.ts`](./src/index.ts) — that list is written by hand, so a rule can change without this document noticing.
+A project only needs its own copy of the sections that apply. Keep this file in sync with the rules themselves: `oxsome.all` in [`src/index.ts`](./src/index.ts) covers everything listed here, and a new rule added to the plugin joins it automatically. A project extending `oxsome.recommended` may be missing a newer rule until this document catches up.
 
 ## Arrow functions
 
