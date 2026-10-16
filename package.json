@@ -1,89 +1,45 @@
 {
   "name": "@rhberro/oxsome",
   "version": "0.1.0",
-  "description": "Custom oxlint plugin (4 opinionated rules) plus a shared oxfmt config, so projects stop carrying their own rule set.",
+  "description": "Custom oxlint plugin (4 opinionated rules) plus a shared oxfmt config.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./plugin": {
+      "types": "./src/index.d.ts",
+      "default": "./src/plugin.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@oxlint/plugins": "^1.86.0"
+  },
+  "peerDependencies": {
+    "oxlint": ">=1.86.0"
+  },
   "keywords": [
-    "config",
-    "format",
-    "lint",
     "oxc",
     "oxfmt",
     "oxlint",
     "oxlint-plugin",
-    "shareable-config",
-    "typescript"
+    "eslint-plugin",
+    "config",
+    "shareable-config"
   ],
-  "homepage": "https://github.com/rhberro/oxsome#readme",
-  "bugs": {
-    "url": "https://github.com/rhberro/oxsome/issues"
-  },
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rhberro/oxsome.git"
   },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "sideEffects": false,
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/index.d.cts",
-        "default": "./dist/cjs/index.cjs"
-      }
-    },
-    "./plugin": {
-      "import": {
-        "types": "./dist/esm/plugin/index.d.ts",
-        "default": "./dist/esm/plugin/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/plugin/index.d.cts",
-        "default": "./dist/cjs/plugin/index.cjs"
-      }
-    },
-    "./package.json": "./package.json"
+  "bugs": {
+    "url": "https://github.com/rhberro/oxsome/issues"
   },
-  "scripts": {
-    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
-    "build": "npm run clean && tsup && node scripts/postbuild.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "verify": "node scripts/verify.mjs",
-    "test": "npm run typecheck && npm run lint && npm run format:check && npm run build && npm run verify",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "@oxlint/plugins": "^1.88.0"
-  },
-  "devDependencies": {
-    "oxfmt": "^0.73.0",
-    "oxlint": "^1.88.0",
-    "tsup": "^9.0.0",
-    "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "oxfmt": ">=0.70.0",
-    "oxlint": ">=1.80.0"
-  },
-  "peerDependenciesMeta": {
-    "oxfmt": {
-      "optional": true
-    },
-    "oxlint": {
-      "optional": true
-    }
-  }
+  "homepage": "https://github.com/rhberro/oxsome#readme"
 }
