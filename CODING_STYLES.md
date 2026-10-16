@@ -173,15 +173,17 @@ run(
 );
 ```
 
-The callback argument is exempt when the call is a React hook, an array method or a promise method, so these stay as they are:
+There are no exemptions. Every argument of every call, every constructor and every JSX prop follows the same rule, including callback arguments. Passing a function by reference works everywhere:
 
 ```ts
 items.map(toId);
+queue.add(toAdd);
 promise.then(unwrap);
+new Promise(executor);
 useEffect(setup, deps);
 ```
 
-Only the callback is exempt. Every other argument still has to be hoisted, including a React dependency array:
+A React dependency array is a literal like any other, so it has to be hoisted too:
 
 Do this:
 
@@ -196,6 +198,7 @@ Avoid this:
 ```ts
 useEffect(setup, []);
 ```
+
 
 ## JSX expressions
 
@@ -230,11 +233,3 @@ Inside `{}` these are all fine, because each one is a reference rather than a co
 <span>{"static text"}</span>
 <span>{"no interpolation"}</span>
 ```
-
-## Known limitations
-
-Three cases are stricter than intended. All three are lint errors today, so do not write them expecting them to pass.
-
-- **Dependency arrays are flagged.** The hook exemption covers the callback only, so `useEffect(setup, [])` reports the `[]`. Hoist it into a variable.
-- **`new Promise(fn)` is flagged.** `Promise` is a constructor, and constructors get no callback exemption. Use `Promise.resolve().then(fn)` or hoist the executor.
-- **The `key` exemption does not apply.** `key={() => 1}` is reported. Hoist the callback.

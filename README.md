@@ -94,30 +94,12 @@ Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`, `trailingComma: 
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | [`no-arrow-functions`](./CODING_STYLES.md#arrow-functions)                 | Arrow functions in any position.                                             |
 | [`no-destructuring-in-params`](./CODING_STYLES.md#parameters-and-destructuring) | Destructuring in a function signature.                                       |
-| [`no-inline-functions-objects-arrays`](./CODING_STYLES.md#inline-functions-objects-and-arrays) | Function, object and array literals passed inline into a call or a JSX prop. |
+| [`no-inline-functions-objects-arrays`](./CODING_STYLES.md#inline-functions-objects-and-arrays) | Any function, object or array literal passed inline. No exemptions.       |
 | [`no-jsx-inline-computation`](./CODING_STYLES.md#jsx-expressions)          | Expressions inside `{...}` in JSX.                                           |
 
 Each rule exists to force a named, reusable value where an anonymous one would do. An arrow function cannot be referenced later; a destructured signature hides the function's contract from its call sites; an inline literal has no name to test or reuse; a JSX container is a description of the screen, not a place to compute.
 
 [`CODING_STYLES.md`](./CODING_STYLES.md) explains every rule with valid and invalid examples. It is written to be handed to an AI agent, and it is the single source of truth for the examples.
-
-### Options
-
-`no-inline-functions-objects-arrays` accepts options that control which callbacks are exempt. Both default to `true`:
-
-```jsonc
-{
-  "rules": {
-    "oxsome/no-inline-functions-objects-arrays": [
-      "error",
-      {
-        "allowHooks": true, // false to also reject hook callbacks
-        "allowArrayCallbacks": true, // false to also reject array-method callbacks
-      },
-    ],
-  },
-}
-```
 
 ## Coding agents
 
