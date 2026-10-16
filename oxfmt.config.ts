@@ -5,6 +5,7 @@ import { oxfmt } from './dist/index.js';
 // Dogfoods the preset this package ships.
 const config = {
   ...oxfmt,
+  ignorePatterns: ['*.md'],
 };
 
 export default defineConfig(config);

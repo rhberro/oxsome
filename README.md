@@ -60,25 +60,9 @@ export default defineConfig({
 });
 ```
 
-### Presets
+### Adding a rule
 
-| Preset               | What it contains                                                    | New rule behaviour                  |
-| -------------------- | ------------------------------------------------------------------- | ----------------------------------- |
-| `oxsome.recommended` | A curated list, written by hand in [`src/index.ts`](./src/index.ts) | Stays opt-in until someone lists it |
-| `oxsome.all`         | Every rule the plugin ships, derived from the plugin itself         | Included automatically              |
-
-Use `recommended` to accept the package's opinion. Use `all` to take everything it has, including rules added later.
-
-```ts
-export default defineConfig({
-  extends: [oxsome.all],
-  jsPlugins: ['@rhberro/oxsome/plugin'],
-});
-```
-
-While `recommended` covers every rule the plugin ships, both behave identically. They diverge the moment a new rule is added: `recommended` will not have it, `all` will.
-
-If you depend on `all`, a new rule can fail your build on a minor version bump.
+`recommended` is a curated list, written by hand. A rule added to the plugin does not join it — it stays opt-in until someone lists it in [`src/index.ts`](./src/index.ts). The compiler rejects a typo in that list, but not a missing entry.
 
 ### Formatting
 
