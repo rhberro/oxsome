@@ -110,7 +110,8 @@ function isAllowedCallbackCallee(
 }
 
 function reportInlineLiteral(context: RuleContext, node: Node): void {
-  context.report({ messageId: 'noInline', node });
+  const report = { messageId: 'noInline', node };
+  context.report(report);
 }
 
 function checkCallArguments(

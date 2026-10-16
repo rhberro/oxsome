@@ -21,15 +21,18 @@ function isRestParam(param: ESTree.ParamPattern): param is ESTree.FormalParamete
 function checkParams(context: RuleContext, params: ESTree.ParamPattern[]): void {
   for (const param of params) {
     if (isPattern(param)) {
-      context.report({ messageId: 'noParams', node: param });
+      const report = { messageId: 'noParams', node: param };
+      context.report(report);
       continue;
     }
     if (param.type === 'AssignmentPattern' && isPattern(param.left)) {
-      context.report({ messageId: 'noParams', node: param.left });
+      const report = { messageId: 'noParams', node: param.left };
+      context.report(report);
       continue;
     }
     if (isRestParam(param) && isPattern(param.argument)) {
-      context.report({ messageId: 'noParams', node: param.argument });
+      const report = { messageId: 'noParams', node: param.argument };
+      context.report(report);
     }
   }
 }

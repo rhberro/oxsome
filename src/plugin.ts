@@ -1,4 +1,4 @@
-import { type Rule, eslintCompatPlugin } from '@oxlint/plugins';
+import { type Plugin, type Rule, eslintCompatPlugin } from '@oxlint/plugins';
 
 import noArrowFunctions from './rules/no-arrow-functions.js';
 import noDestructuringInParams from './rules/no-destructuring-in-params.js';
@@ -23,7 +23,9 @@ const RULES = {
  * `meta.name` is what oxlint uses as the rule prefix when the plugin is listed
  * in `jsPlugins` as a bare string.
  */
-const plugin = eslintCompatPlugin({ meta: { name: 'oxsome' }, rules: RULES });
+const PLUGIN: Plugin = { meta: { name: 'oxsome' }, rules: RULES };
+
+const plugin = eslintCompatPlugin(PLUGIN);
 
 /** Rule name without the `oxsome/` prefix. */
 export type RuleName = keyof typeof RULES;

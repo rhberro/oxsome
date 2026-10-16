@@ -26,7 +26,8 @@ const rule: CreateOnceRule = {
         if (expression.type === 'TemplateLiteral' && isSimpleTemplateLiteral(expression)) {
           return;
         }
-        context.report({ messageId: 'noInline', node: expression });
+        const report = { messageId: 'noInline', node: expression };
+        context.report(report);
       },
     };
   },

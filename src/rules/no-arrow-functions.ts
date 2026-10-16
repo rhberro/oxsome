@@ -1,10 +1,10 @@
 import type { CreateOnceRule, ESTree } from '@oxlint/plugins';
 
-function reportArrow(
-  context: Parameters<CreateOnceRule['createOnce']>[0],
-  node: ESTree.Node,
-): void {
-  context.report({ messageId: 'noArrow', node });
+type RuleContext = Parameters<CreateOnceRule['createOnce']>[0];
+
+function reportArrow(context: RuleContext, node: ESTree.Node): void {
+  const report = { messageId: 'noArrow', node };
+  context.report(report);
 }
 
 const rule: CreateOnceRule = {
