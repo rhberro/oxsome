@@ -8,9 +8,10 @@ import { oxsome } from './dist/index.js';
 const config: OxlintConfig = {
   extends: [oxsome.recommended],
 
-  // Consumers write `@rhberro/oxsome/plugin`. We point at the built output
-  // because oxlint's config loader does not resolve package self-references.
-  jsPlugins: [{ name: 'oxsome', specifier: './dist/plugin.js' }],
+  // Same shape consumers use (`['@rhberro/oxsome/plugin']`), just pointed at the
+  // built output because oxlint's loader does not resolve self-references.
+  // The `oxsome` prefix comes from the plugin's own meta.name.
+  jsPlugins: ['./dist/plugin.js'],
 };
 
 export default defineConfig(config);
