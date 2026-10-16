@@ -1,0 +1,98 @@
+{
+  "lsp": {
+    "oxfmt": {
+      "initialization_options": {
+        "settings": {
+          "run": "onSave"
+        }
+      }
+    }
+  },
+  "languages": {
+    "JavaScript": {
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": [
+        {
+          "code_action": "source.fixAll.oxc"
+        },
+        {
+          "language_server": { "name": "oxfmt" }
+        }
+      ],
+      "code_actions_on_format": {
+        "source.fixAll.oxc": true
+      },
+      "format_on_save": "on"
+    },
+    "TypeScript": {
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": [
+        {
+          "code_action": "source.fixAll.oxc"
+        },
+        {
+          "language_server": { "name": "oxfmt" }
+        }
+      ],
+      "code_actions_on_format": {
+        "source.fixAll.oxc": true
+      },
+      "format_on_save": "on"
+    },
+    "TSX": {
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": [
+        {
+          "code_action": "source.fixAll.oxc"
+        },
+        {
+          "language_server": { "name": "oxfmt" }
+        }
+      ],
+      "code_actions_on_format": {
+        "source.fixAll.oxc": true
+      },
+      "format_on_save": "on"
+    },
+    "JSON": {
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": [
+        {
+          "code_action": "source.fixAll.oxc"
+        },
+        {
+          "language_server": { "name": "oxfmt" }
+        }
+      ],
+      "code_actions_on_format": {
+        "source.fixAll.oxc": true
+      },
+      "format_on_save": "on"
+    },
+    "JSONC": {
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": [
+        {
+          "code_action": "source.fixAll.oxc"
+        },
+        {
+          "language_server": { "name": "oxfmt" }
+        }
+      ],
+      "code_actions_on_format": {
+        "source.fixAll.oxc": true
+      },
+      "format_on_save": "on"
+    }
+  }
+}

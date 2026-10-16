@@ -36,10 +36,12 @@ Two entries, both required:
 import { oxsome } from '@rhberro/oxsome';
 import { defineConfig } from 'oxlint';
 
-export default defineConfig({
-  extends: [oxsome.recommended],
-  jsPlugins: ['@rhberro/oxsome/plugin'],
-});
+export default defineConfig(
+  {
+    extends: [oxsome.recommended],
+    jsPlugins: ['@rhberro/oxsome/plugin'],
+  }
+);
 ```
 
 `extends` carries the rules. `jsPlugins` tells oxlint where the plugin lives — and oxlint's `extends` does not inherit `jsPlugins`, so it has to be declared per project. Both are mandatory, and they fail differently: omit `jsPlugins` and oxlint stops with `Plugin 'oxsome' not found`; omit `extends` and it runs silently, reporting nothing.
@@ -51,13 +53,15 @@ This only works in `oxlint.config.ts`, never in `.oxlintrc.json`.
 Local rules win, left to right:
 
 ```ts
-export default defineConfig({
-  extends: [oxsome.recommended],
-  jsPlugins: ['@rhberro/oxsome/plugin'],
-  rules: {
-    'oxsome/no-arrow-functions': 'off',
-  },
-});
+export default defineConfig(
+  {
+    extends: [oxsome.recommended],
+    jsPlugins: ['@rhberro/oxsome/plugin'],
+    rules: {
+      'oxsome/no-arrow-functions': 'off',
+    },
+  }
+);
 ```
 
 ### Adding a rule
@@ -77,9 +81,9 @@ npm install -D @rhberro/oxsome oxfmt
 import { oxfmt } from '@rhberro/oxsome';
 import { defineConfig } from 'oxfmt';
 
-export default defineConfig({
-  ...oxfmt,
-});
+export default defineConfig(
+  { ...oxfmt }
+);
 ```
 
 Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`, `trailingComma: 'all'`, sorted imports, sorted `package.json`.
@@ -115,14 +119,6 @@ Each rule exists to force a named, reusable value where an anonymous one would d
 }
 ```
 
-### Known limitations
-
-Three cases are stricter than intended, all three are lint errors today:
-
-- **React dependency arrays are flagged.** The hook exemption covers the callback, not the other arguments, so `useEffect(setup, [])` is reported on the `[]`. Hoist it: `const deps = []`.
-- **`new Promise(fn)` is flagged.** `Promise` is a constructor, and constructors get no callback exemption, while the allowlist only covers `then`, `catch` and `finally`. Write `Promise.resolve().then(fn)` or hoist the executor.
-- **The `key` exemption does not apply.** `key={() => 1}` is reported. Hoist the callback.
-
 ## Coding agents
 
 The rules ship as a document written for language models: [`CODING_STYLES.md`](./CODING_STYLES.md). One section per rule, each with valid and invalid examples. It installs with the package, so the document your agent reads is always the version that matches the linter your project actually runs.
@@ -149,18 +145,7 @@ npm test
 
 The repo dogfoods the package: every rule runs here, and `oxfmt.config.ts` spreads the preset it ships.
 
-To add a rule, drop the file in [`src/rules/`](./src/rules) and register it in [`src/plugin.ts`](./src/plugin.ts). It stays out of `oxsome.recommended` until you list it in [`src/index.ts`](./src/index.ts). The compiler rejects a typo in that list, but not a missing entry.
-
-### Why the rules are compiled
-
-oxlint accepts TypeScript plugins — Node strips the types — but only outside `node_modules`:
-
-```
-ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING:
-  Stripping types is currently unsupported for files under node_modules
-```
-
-So a published package has to ship JavaScript. `tsc` builds `dist/`, which is what goes on npm; `src/` stays behind.
+To add a rule, drop the file in [`src/rules/`](./src/rules) and register it in [`src/plugin.ts`](./src/plugin.ts). It stays out of `oxsome.recommended` until you list it in [`src/index.ts`](./src/index.ts).
 
 ## Publishing
 
@@ -172,10 +157,6 @@ git push --follow-tags
 ```
 
 The workflow verifies the tag matches `package.json`, runs the test suite, and publishes. `prepublishOnly` also runs the suite, so a broken rule blocks the publish locally.
-
-npm propagates a new version to the registry over a few minutes — a `404` right after a successful run is normal, not a failure.
-
-Configure the trusted publisher on npmjs.com under _Package settings_ → _Trusted Publisher_, pointing at this repository and `publish.yml`, with `npm publish` allowed.
 
 ## License
 
