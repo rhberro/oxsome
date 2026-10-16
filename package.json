@@ -1,6 +1,6 @@
 {
   "name": "@rhberro/oxsome",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Opinionated oxlint plugin rules, plus a shared oxfmt config.",
   "keywords": [
     "config",
