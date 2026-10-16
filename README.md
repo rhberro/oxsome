@@ -257,9 +257,9 @@ Three cases behave worse than intended. All three are documented so they do not 
 
 ## Coding agents
 
-If your project uses an AI agent, point it at [`CODING_STYLES.md`](./CODING_STYLES.md). The file states the same four rules in prose with examples, which gives you validation in two places: the agent knows the rule before it writes a line, and the lint rules catch whatever slips through.
+If your project uses an AI agent, give it [`CODING_STYLES.md`](./CODING_STYLES.md). It states the four rules in prose with examples, which gives you validation in two places: the agent knows the rule before it writes a line, and the lint rules catch whatever slips through.
 
-Copy it into your project, or reference it straight from the repository:
+The file is self-contained: no paths back to this repository, no links to follow, nothing to resolve. Copy it into your project as `docs/CODING_STYLES.md` or paste it straight into your agent instructions, then point the agent at it:
 
 ```md
 <!-- in AGENTS.md -->
@@ -269,9 +269,9 @@ Copy it into your project, or reference it straight from the repository:
 
 `AGENTS.md` is the convention most agents read, but the name does not matter much — `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar files work just as well, as long as the agent is told to consult it.
 
-Do not paraphrase the rules from memory in your own instructions file. Point at [`CODING_STYLES.md`](./CODING_STYLES.md) instead, so there is a single source of truth: when a rule changes or a defect is fixed, every project picks it up on the next update instead of drifting.
+Do not paraphrase the rules from memory in your own instructions. Point at the file instead, so there is one source of truth: when a rule changes or a defect is fixed, every project picks it up on the next update instead of drifting.
 
-That file also carries a _Known limitations_ section. Read it before generating code — two cases are stricter than intended, and an agent that has not seen them will write code the linter then rejects.
+Read the _Known limitations_ section before generating code. Three cases are stricter than intended, and an agent that has not seen them will write code the linter then rejects.
 
 ## Development
 

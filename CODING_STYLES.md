@@ -1,24 +1,14 @@
 # Coding Styles
 
-The four conventions below are enforced by the [`@rhberro/oxsome`](https://www.npmjs.com/package/@rhberro/oxsome) oxlint plugin. Follow them when writing, changing or reviewing code. Every one of them has a lint rule that will fail the build if it is ignored.
+Code in this project must follow the four rules below. Each one is enforced by a lint rule, so a violation fails the build — but write code that already complies rather than relying on the linter to catch it.
 
-## Referencing this file
-
-Point your agent at this file from the project's `AGENTS.md`. The lint rules are the backstop; this document is the intent, so the agent knows the rule _before_ it writes the code instead of discovering it from a failure.
-
-```md
-<!-- in AGENTS.md -->
-
-| Coding Styles | Code conventions: how functions, parameters, call arguments and JSX must be written. | Whenever writing, changing or reviewing code. | `docs/CODING_STYLES.md` |
-```
-
-A project only needs its own copy of the sections that apply. Keep this file in sync with the rules themselves: `oxsome.all` in [`src/index.ts`](./src/index.ts) covers everything listed here, and a new rule added to the plugin joins it automatically. A project extending `oxsome.recommended` may be missing a newer rule until this document catches up.
+Rules not covered here are up to you.
 
 ## Arrow functions
 
 None. Not anywhere — components, callbacks, event handlers, `then`/`catch`, `map`/`filter`, hooks. Every function is declared with `function`, named, defined before use, and passed by reference.
 
-Rule: [`no-arrow-functions`](https://www.npmjs.com/package/@rhberro/oxsome).
+Rule: `oxsome/no-arrow-functions`
 
 Do this:
 
@@ -60,7 +50,7 @@ useEffect(() => {
 
 Destructure inside the function body, never in the signature. A destructured signature hides what the function actually requires from anyone reading the call site.
 
-Rule: [`no-destructuring-in-params`](https://www.npmjs.com/package/@rhberro/oxsome).
+Rule: `oxsome/no-destructuring-in-params`
 
 Do this:
 
@@ -102,7 +92,7 @@ function first([head]: number[]) {
 
 Never pass a function, object or array literal straight into a call or a JSX prop. A literal written inline is anonymous: it has no name, so it cannot be reused, referenced or tested. Extract it to a named constant and pass the name.
 
-Rule: [`no-inline-functions-objects-arrays`](https://www.npmjs.com/package/@rhberro/oxsome).
+Rule: `oxsome/no-inline-functions-objects-arrays`
 
 Do this:
 
@@ -134,7 +124,7 @@ Avoid this:
 const thing = new Thing({ id: 1 });
 ```
 
-A literal passed as a JSX prop is the same violation:
+And a literal passed as a JSX prop is the same violation:
 
 Do this:
 
@@ -148,6 +138,22 @@ Avoid this:
 <Box style={{ margin: 0 }} />;
 ```
 
+This holds however deeply the literal is nested:
+
+Do this:
+
+```ts
+const settings = { retries: 2 };
+
+run(normalize(settings));
+```
+
+Avoid this:
+
+```ts
+run(normalize({ retries: 2 }));
+```
+
 The callback argument is exempt when the call is a React hook, an array method or a promise method, so these stay as they are:
 
 ```ts
@@ -156,12 +162,7 @@ promise.then(unwrap);
 useEffect(setup, deps);
 ```
 
-Watch the remaining arguments. Only the callback is exempt — everything else still has to be hoisted, including a React dependency array:
-
-```ts
-// flagged: the [] is an inline literal
-useEffect(setup, []);
-```
+Only the callback is exempt. Every other argument still has to be hoisted, including a React dependency array:
 
 Do this:
 
@@ -171,11 +172,17 @@ const deps: Item[] = [];
 useEffect(setup, deps);
 ```
 
+Avoid this:
+
+```ts
+useEffect(setup, []);
+```
+
 ## JSX expressions
 
 A JSX expression container holds a name, nothing else. JSX describes what is on screen; it is not the place where values get computed. Extract the computation into a named constant first.
 
-Rule: [`no-jsx-inline-computation`](https://www.npmjs.com/package/@rhberro/oxsome).
+Rule: `oxsome/no-jsx-inline-computation`
 
 Do this:
 
@@ -213,4 +220,4 @@ Three cases are stricter than intended. All three are lint errors today, so do n
 
 - **Dependency arrays are flagged.** The hook exemption covers the callback only, so `useEffect(setup, [])` reports the `[]`. Hoist it into a variable.
 - **`new Promise(fn)` is flagged.** `Promise` is a constructor, and constructors get no callback exemption. Use `Promise.resolve().then(fn)` or hoist the executor.
-- **The `key` exemption does not apply.** `isJsxKeyAttribute` compares the attribute name against `"Identifier"` while oxc names that node `JSXIdentifier`, so the check never matches. `key={() => 1}` is reported.
+- **The `key` exemption does not apply.** `key={() => 1}` is reported. Hoist the callback.
