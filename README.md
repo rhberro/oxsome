@@ -1,6 +1,6 @@
 # @rhberro/oxsome
 
-Four opinionated lint rules for [oxlint](https://oxc.rs/docs/guide/usage/linter.html), written in TypeScript against oxc's own AST types.
+Opinionated lint rules for [oxlint](https://oxc.rs/docs/guide/usage/linter.html), written in TypeScript against oxc's own AST types.
 
 These are deliberately **aggressive** and **narrow**. They are not a general-purpose style guide and they are not trying to be one. They encode a few very specific opinions about how code should be shaped, opinions strong enough that most teams would argue with at least one of them:
 
@@ -76,7 +76,7 @@ export default defineConfig({
 });
 ```
 
-Today both contain the same four rules, so they behave identically. They diverge the moment a fifth rule lands: `recommended` will not have it, `all` will.
+While `recommended` covers every rule the plugin ships, both behave identically. They diverge the moment a new rule is added: `recommended` will not have it, `all` will.
 
 If you depend on `all`, a new rule can fail your build on a minor version bump.
 
@@ -141,7 +141,7 @@ Three cases are stricter than intended, all three are lint errors today:
 
 ## Coding agents
 
-The four rules ship as a document written for language models: [`CODING_STYLES.md`](./CODING_STYLES.md). One section per rule, each with valid and invalid examples. It installs with the package, so the document your agent reads is always the version that matches the linter your project actually runs.
+The rules ship as a document written for language models: [`CODING_STYLES.md`](./CODING_STYLES.md). One section per rule, each with valid and invalid examples. It installs with the package, so the document your agent reads is always the version that matches the linter your project actually runs.
 
 Point your agent at it from `AGENTS.md`:
 
@@ -163,7 +163,7 @@ npm test
 
 `npm test` builds with `tsc`, runs oxlint and checks formatting. The rules are TypeScript, typed against `ESTree` — the oxc AST types that `@oxlint/plugins` exports.
 
-The repo dogfoods the package: all four rules run here, and `oxfmt.config.ts` spreads the preset it ships.
+The repo dogfoods the package: every rule runs here, and `oxfmt.config.ts` spreads the preset it ships.
 
 To add a rule, drop the file in [`src/rules/`](./src/rules) and register it in [`src/plugin.ts`](./src/plugin.ts). It stays out of `oxsome.recommended` until you list it in [`src/index.ts`](./src/index.ts). The compiler rejects a typo in that list, but not a missing entry.
 

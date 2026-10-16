@@ -1,6 +1,6 @@
 # Coding Styles
 
-Code in this project must follow the four rules below. Each one is enforced by a lint rule, so a violation fails the build — but write code that already complies rather than relying on the linter to catch it.
+Code in this project must follow the rules below. Each one is enforced by a lint rule, so a violation fails the build — but write code that already complies rather than relying on the linter to catch it.
 
 Rules not covered here are up to you.
 
@@ -23,7 +23,9 @@ items.map(renderItem);
 Avoid this:
 
 ```ts
-items.map((item) => <li>{item.label}</li>);
+items.map(
+  (item) => <li>{item.label}</li>
+);
 ```
 
 Do this:
@@ -41,9 +43,12 @@ useEffect(myEffect, deps);
 Avoid this:
 
 ```ts
-useEffect(() => {
-  doThing();
-}, [dependency]);
+useEffect(
+  () => {
+    doThing();
+  },
+  [dependency]
+);
 ```
 
 ## Parameters and destructuring
@@ -64,7 +69,9 @@ function updatePlayer(props: UpdatePlayerProps) {
 Avoid this:
 
 ```ts
-function updatePlayer({ id, name }: UpdatePlayerProps) {
+function updatePlayer(
+  { id, name }: UpdatePlayerProps
+) {
   // ...
 }
 ```
@@ -83,7 +90,9 @@ function first(args: number[]) {
 Avoid this:
 
 ```ts
-function first([head]: number[]) {
+function first(
+  [head]: number[]
+) {
   return head;
 }
 ```
@@ -105,7 +114,9 @@ run(options);
 Avoid this:
 
 ```ts
-run({ retries: 2 });
+run(
+  { retries: 2 }
+);
 ```
 
 The rule also covers `new`:
@@ -121,7 +132,9 @@ const thing = new Thing(config);
 Avoid this:
 
 ```ts
-const thing = new Thing({ id: 1 });
+const thing = new Thing(
+  { id: 1 }
+);
 ```
 
 And a literal passed as a JSX prop is the same violation:
@@ -135,7 +148,7 @@ Do this:
 Avoid this:
 
 ```ts
-<Box style={{ margin: 0 }} />;
+<Box style={ { margin: 0 } } />;
 ```
 
 This holds however deeply the literal is nested:
@@ -145,13 +158,19 @@ Do this:
 ```ts
 const settings = { retries: 2 };
 
-run(normalize(settings));
+run(
+  normalize(settings)
+);
 ```
 
 Avoid this:
 
 ```ts
-run(normalize({ retries: 2 }));
+run(
+  normalize(
+    { retries: 2 }
+  )
+);
 ```
 
 The callback argument is exempt when the call is a React hook, an array method or a promise method, so these stay as they are:
@@ -190,7 +209,6 @@ Do this:
 function PlayerCard(props: PlayerCardProps) {
   const { name, level } = props;
   const label = `${name} — level ${level}`;
-
   return <span>{label}</span>;
 }
 ```
@@ -200,7 +218,6 @@ Avoid this:
 ```tsx
 function PlayerCard(props: PlayerCardProps) {
   const { name, level } = props;
-
   return <span>{`${name} — level ${level}`}</span>;
 }
 ```
