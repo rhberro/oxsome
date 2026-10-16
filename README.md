@@ -197,6 +197,16 @@ useEffect(setup, deps);
 
 The callback argument is exempt when it belongs to a React hook, an array method (`map`, `filter`, `reduce`, ...) or a promise method (`then`, `catch`, `finally`). `NewExpression` is always checked.
 
+The check descends into nested calls, so a literal buried a level down is still caught. The exemption follows the _innermost_ callee, which keeps legitimate chains working:
+
+```ts
+// flagged: the object literal is inline, however deeply nested
+run(normalize({ a: 1 }));
+
+// fine: the callback belongs to `.map`
+new Map(entries.map(toId));
+```
+
 Options:
 
 ```jsonc
@@ -239,9 +249,10 @@ Allowed inside `{}`: identifiers, member expressions, literals, nested JSX eleme
 
 ### Known limitations
 
-Two cases behave worse than intended. Both are documented so they do not surprise you:
+Three cases behave worse than intended. All three are documented so they do not surprise you:
 
 - **React dependency arrays are flagged.** The hook exemption covers the callback, not the other arguments, so `useEffect(setup, [])` is reported on the `[]`. Hoist it: `const deps = []`.
+- **`new Promise(fn)` is flagged.** `Promise` is a constructor, and `NewExpression` gets no callback exemption, while the allowlist only covers `then`, `catch` and `finally`. Write `Promise.resolve().then(fn)` or hoist the executor.
 - **The `key` exemption does not apply.** `isJsxKeyAttribute` compares `name.type` against `'Identifier'`, but oxc types the attribute name as `JSXIdentifier`, so the check never matches and `key={() => 1}` is reported.
 
 ## Coding agents

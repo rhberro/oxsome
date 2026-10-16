@@ -114,18 +114,33 @@ function reportInlineLiteral(context: RuleContext, node: Node): void {
   context.report(report);
 }
 
+/**
+ * Whether a call's callee earns the callback exemption.
+ *
+ * Evaluated per call site rather than inherited from the enclosing call: when
+ * an argument is itself a call, the exemptions belong to *that* callee. So
+ * `new Map(entries.map(toId))` checks `toId` against `.map`, not against the
+ * constructor.
+ */
+function allowsCallbackHere(
+  callee: ESTree.Expression,
+  allowHooks: boolean,
+  allowArrayCallbacks: boolean,
+): boolean {
+  if (callee.type === 'V8IntrinsicExpression') {
+    return false;
+  }
+  return isAllowedCallbackCallee(callee, allowHooks, allowArrayCallbacks);
+}
+
 function checkCallArguments(
   context: RuleContext,
   node: ESTree.CallExpression | ESTree.NewExpression,
+  allowCallbackHere: boolean,
   allowHooks: boolean,
   allowArrayCallbacks: boolean,
+  consumed: Set<Node>,
 ): void {
-  const callee = node.callee;
-  const allowCallbackHere =
-    callee.type === 'V8IntrinsicExpression'
-      ? false
-      : isAllowedCallbackCallee(callee, allowHooks, allowArrayCallbacks);
-
   for (const arg of node.arguments) {
     if (arg.type === 'SpreadElement') {
       if (isInlineLiteral(arg.argument)) {
@@ -133,6 +148,26 @@ function checkCallArguments(
       }
       continue;
     }
+
+    // Descend: a literal buried inside a nested call is still inline. The
+    // nested node is marked so the visitor does not check it again when
+    // traversal reaches it, which would report the same literal twice.
+    if (arg.type === 'CallExpression' || arg.type === 'NewExpression') {
+      if (consumed.has(arg)) {
+        continue;
+      }
+      consumed.add(arg);
+      checkCallArguments(
+        context,
+        arg,
+        allowsCallbackHere(arg.callee, allowHooks, allowArrayCallbacks),
+        allowHooks,
+        allowArrayCallbacks,
+        consumed,
+      );
+      continue;
+    }
+
     if (!isInlineLiteral(arg)) {
       continue;
     }
@@ -178,15 +213,33 @@ const rule: CreateOnceRule = {
     const allowHooks = options.allowHooks !== false;
     const allowArrayCallbacks = options.allowArrayCallbacks !== false;
 
+    // Nested calls are checked by the outermost call that contains them. The
+    // visitor still fires for them, so this set is what stops a second report.
+    const consumed = new Set<Node>();
+
     return {
       CallExpression(node: ESTree.CallExpression) {
-        checkCallArguments(context, node, allowHooks, allowArrayCallbacks);
+        if (consumed.has(node)) {
+          return;
+        }
+        checkCallArguments(
+          context,
+          node,
+          allowsCallbackHere(node.callee, allowHooks, allowArrayCallbacks),
+          allowHooks,
+          allowArrayCallbacks,
+          consumed,
+        );
       },
       JSXAttribute(node: ESTree.JSXAttribute) {
         checkJsxAttribute(context, node);
       },
       NewExpression(node: ESTree.NewExpression) {
-        checkCallArguments(context, node, false, false);
+        if (consumed.has(node)) {
+          return;
+        }
+        // A constructor gets no callback exemption of its own.
+        checkCallArguments(context, node, false, allowHooks, allowArrayCallbacks, consumed);
       },
     };
   },

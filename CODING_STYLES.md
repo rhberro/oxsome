@@ -209,7 +209,8 @@ Inside `{}` these are all fine, because each one is a reference rather than a co
 
 ## Known limitations
 
-Two cases are stricter than intended. Both are lint errors today, so do not write them expecting them to pass.
+Three cases are stricter than intended. All three are lint errors today, so do not write them expecting them to pass.
 
 - **Dependency arrays are flagged.** The hook exemption covers the callback only, so `useEffect(setup, [])` reports the `[]`. Hoist it into a variable.
+- **`new Promise(fn)` is flagged.** `Promise` is a constructor, and constructors get no callback exemption. Use `Promise.resolve().then(fn)` or hoist the executor.
 - **The `key` exemption does not apply.** `isJsxKeyAttribute` compares the attribute name against `"Identifier"` while oxc names that node `JSXIdentifier`, so the check never matches. `key={() => 1}` is reported.
