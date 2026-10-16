@@ -5,9 +5,13 @@ import noDestructuringInParams from './rules/no-destructuring-in-params.js';
 import noInlineFunctionsObjectsArrays from './rules/no-inline-functions-objects-arrays.js';
 import noJsxInlineComputation from './rules/no-jsx-inline-computation.js';
 
-// `meta.name` is what oxlint uses as the rule prefix when the plugin is listed
-// in `jsPlugins` as a bare string.
-export default eslintCompatPlugin({
+/**
+ * The `oxsome` oxlint plugin.
+ *
+ * `meta.name` is what oxlint uses as the rule prefix when the plugin is listed
+ * in `jsPlugins` as a bare string.
+ */
+const plugin = eslintCompatPlugin({
   meta: { name: 'oxsome' },
   rules: {
     'no-arrow-functions': noArrowFunctions,
@@ -16,3 +20,5 @@ export default eslintCompatPlugin({
     'no-jsx-inline-computation': noJsxInlineComputation,
   },
 });
+
+export default plugin;

@@ -21,33 +21,45 @@
     "url": "git+https://github.com/rhberro/oxsome.git"
   },
   "files": [
-    "src"
+    "dist"
   ],
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./plugin": {
-      "types": "./src/index.d.ts",
-      "default": "./src/plugin.js"
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
     },
     "./package.json": "./package.json"
   },
   "scripts": {
-    "typecheck": "tsc",
-    "prepublishOnly": "npm run typecheck"
+    "build": "tsc",
+    "prelint": "npm run build",
+    "lint": "oxlint",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "test": "npm run build && npm run lint && npm run format:check",
+    "prepublishOnly": "npm test"
   },
   "dependencies": {
     "@oxlint/plugins": "^1.86.0"
   },
   "devDependencies": {
     "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
+    "oxfmt": ">=0.70.0",
     "oxlint": ">=1.86.0"
+  },
+  "peerDependenciesMeta": {
+    "oxfmt": {
+      "optional": true
+    }
   }
 }

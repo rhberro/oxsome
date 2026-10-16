@@ -3,7 +3,9 @@
 Plugin de **oxlint** com 4 regras autorais, mais uma config compartilhada de
 **oxfmt**. Instale uma vez em cada projeto e pare de duplicar configuração.
 
-JS puro, sem etapa de build. O que está em `src/` é exatamente o que é publicado.
+As regras são TypeScript, tipadas com os nós da AST do oxc (`ESTree`) que o
+próprio `@oxlint/plugins` exporta. `tsc` compila para `dist/` — é o único passo
+de build.
 
 ## As 4 regras
 
@@ -74,8 +76,21 @@ export default defineConfig({
 ### Adicionar uma regra
 
 Jogue o arquivo em [`src/rules/`](./src/rules) e registre em
-[`src/plugin.js`](./src/plugin.js). O `oxsome.recommended` é gerado a partir das
+[`src/plugin.ts`](./src/plugin.ts). O `oxsome.recommended` é gerado a partir das
 chaves do plugin, então a regra nova entra sozinha — sem mexer em mais nada.
+
+### Por que as regras precisam ser compiladas
+
+O oxlint aceita plugin `.ts` (o Node faz type-stripping), **mas só fora de
+`node_modules`**:
+
+```
+ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING:
+  Stripping types is currently unsupported for files under node_modules
+```
+
+Então um pacote publicado tem que entregar JS compilado. É o que o `tsc` faz —
+`dist/` é o que vai no npm, e `src/` fica de fora.
 
 ### Cuidado ao escrever seu config
 
@@ -109,14 +124,34 @@ export default defineConfig(config);
 Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`,
 `trailingComma: "all"`, imports ordenados, `package.json` ordenado.
 
+## Desenvolvimento
+
+```sh
+npm ci
+npm test
+```
+
+`npm test` compila, roda o oxlint e o format check. Os dois configs deste repo
+apontam para `dist/`, então `prelint` compila antes — nada é lintado contra
+código velho.
+
+O repo se dogfooda: as 4 regras valem aqui também (só
+`no-inline-functions-objects-arrays` fica desligada, porque reprovaria o
+próprio `defineConfig({ ... })`), e o `oxfmt.config.ts` faz spread do preset que
+o pacote exporta.
+
 ## Publicação
 
 Primeira vez, manual:
 
 ```sh
 npm login
+npm run build
 npm publish --access public --provenance
 ```
+
+`prepublishOnly` roda `npm test` (build + lint + format check), então publicar
+com regra quebrada falha.
 
 Depois, publicar é só criar uma tag — a [workflow de publish](./.github/workflows/publish.yml)
 faz o resto via npm Trusted Publishing (OIDC, sem token no repositório):
