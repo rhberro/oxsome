@@ -33,5 +33,7 @@ jobs:
 
       # Auth comes from npm Trusted Publishing (OIDC), enabled by the
       # `id-token: write` permission above. No NPM_TOKEN secret is involved.
+      # No --provenance flag either: npm generates the attestation
+      # automatically when publishing via trusted publishing.
       - name: Publish
-        run: npm publish --provenance --access public
+        run: npm publish --access public
