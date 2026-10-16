@@ -102,112 +102,20 @@ Defaults: `printWidth: 100`, `semi: true`, `singleQuote: true`, `trailingComma: 
 
 ## Rules
 
-| Rule                                                                        | What it forbids                                                              |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| [`no-arrow-functions`](#no-arrow-functions)                                 | Arrow functions in any position.                                             |
-| [`no-destructuring-in-params`](#no-destructuring-in-params)                 | Destructuring in a function signature.                                       |
-| [`no-inline-functions-objects-arrays`](#no-inline-functions-objects-arrays) | Function, object and array literals passed inline into a call or a JSX prop. |
-| [`no-jsx-inline-computation`](#no-jsx-inline-computation)                   | Expressions inside `{...}` in JSX.                                           |
+| Rule                                                            | What it forbids                                                              |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [`no-arrow-functions`](./CODING_STYLES.md#arrow-functions)                 | Arrow functions in any position.                                             |
+| [`no-destructuring-in-params`](./CODING_STYLES.md#parameters-and-destructuring) | Destructuring in a function signature.                                       |
+| [`no-inline-functions-objects-arrays`](./CODING_STYLES.md#inline-functions-objects-and-arrays) | Function, object and array literals passed inline into a call or a JSX prop. |
+| [`no-jsx-inline-computation`](./CODING_STYLES.md#jsx-expressions)          | Expressions inside `{...}` in JSX.                                           |
 
-### no-arrow-functions
+Each rule exists to force a named, reusable value where an anonymous one would do. An arrow function cannot be referenced later; a destructured signature hides the function's contract from its call sites; an inline literal has no name to test or reuse; a JSX container is a description of the screen, not a place to compute.
 
-Arrow functions hide the function's identity: you cannot name it, you cannot reference it later, and you cannot pass it around without re-creating it. Every arrow function has to be declared as a named function and passed by reference.
+[`CODING_STYLES.md`](./CODING_STYLES.md) explains every rule with valid and invalid examples. It is written to be handed to an AI agent, and it is the single source of truth for the examples.
 
-Callbacks are included — including the ones people expect to be exempt.
+### Options
 
-Invalid:
-
-```ts
-const double = (n: number) => n * 2;
-
-const ids = items.map((item) => item.id);
-
-<Button onClick={() => close()} />;
-```
-
-Valid:
-
-```ts
-function double(n: number) {
-  return n * 2;
-}
-
-function toId(item: Item) {
-  return item.id;
-}
-
-const ids = items.map(toId);
-```
-
-### no-destructuring-in-params
-
-Destructuring in a signature makes the function's contract invisible at the call site. Read the body to find out what the function actually needs.
-
-Invalid:
-
-```ts
-function Widget({ value }) {
-  return value;
-}
-
-function Greeting({ name } = {}) {
-  return name;
-}
-
-function first(...[head]) {
-  return head;
-}
-```
-
-Valid:
-
-```ts
-function Widget(props) {
-  const { value } = props;
-  return value;
-}
-```
-
-### no-inline-functions-objects-arrays
-
-A literal written inline is anonymous: there is no name for it, so it cannot be reused, tested, or memoized. Extract it to a named constant and pass the name.
-
-Invalid:
-
-```ts
-run({ retries: 2 });
-
-new Thing({ id: 1 });
-
-run(() => 1);
-
-<Box style={{ margin: 0 }} />;
-```
-
-Valid:
-
-```ts
-const options = { retries: 2 };
-run(options);
-
-items.map(toId);
-promise.then(unwrap);
-useEffect(setup, deps);
-```
-
-The callback argument is exempt when it belongs to a React hook, an array method (`map`, `filter`, `reduce`, ...) or a promise method (`then`, `catch`, `finally`). `NewExpression` is always checked.
-
-The check descends into nested calls, so a literal buried a level down is still caught. The exemption follows the _innermost_ callee, which keeps legitimate chains working:
-
-```ts
-// flagged: the object literal is inline, however deeply nested
-run(normalize({ a: 1 }));
-
-// fine: the callback belongs to `.map`
-new Map(entries.map(toId));
-```
-
-Options:
+`no-inline-functions-objects-arrays` accepts options that control which callbacks are exempt. Both default to `true`:
 
 ```jsonc
 {
@@ -223,37 +131,13 @@ Options:
 }
 ```
 
-### no-jsx-inline-computation
-
-JSX is a description of what is on screen, not the place where values get computed. Anything inside `{...}` should be a name you could read out loud.
-
-Invalid:
-
-```tsx
-<p>{props.value + 1}</p>;
-
-<p>{`total: ${props.value}`}</p>;
-```
-
-Valid:
-
-```tsx
-const total = props.value + 1;
-
-return <p>{total}</p>;
-return <p>{props.label}</p>;
-return <p>{'static text'}</p>;
-```
-
-Allowed inside `{}`: identifiers, member expressions, literals, nested JSX elements, and template literals without interpolation.
-
 ### Known limitations
 
-Three cases behave worse than intended. All three are documented so they do not surprise you:
+Three cases are stricter than intended, all three are lint errors today:
 
 - **React dependency arrays are flagged.** The hook exemption covers the callback, not the other arguments, so `useEffect(setup, [])` is reported on the `[]`. Hoist it: `const deps = []`.
-- **`new Promise(fn)` is flagged.** `Promise` is a constructor, and `NewExpression` gets no callback exemption, while the allowlist only covers `then`, `catch` and `finally`. Write `Promise.resolve().then(fn)` or hoist the executor.
-- **The `key` exemption does not apply.** `isJsxKeyAttribute` compares `name.type` against `'Identifier'`, but oxc types the attribute name as `JSXIdentifier`, so the check never matches and `key={() => 1}` is reported.
+- **`new Promise(fn)` is flagged.** `Promise` is a constructor, and constructors get no callback exemption, while the allowlist only covers `then`, `catch` and `finally`. Write `Promise.resolve().then(fn)` or hoist the executor.
+- **The `key` exemption does not apply.** `key={() => 1}` is reported. Hoist the callback.
 
 ## Coding agents
 
