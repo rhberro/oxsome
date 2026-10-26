@@ -2,11 +2,13 @@ import type { CreateOnceRule, ESTree } from '@oxlint/plugins';
 
 type RuleContext = Parameters<CreateOnceRule['createOnce']>[0];
 
+type Params = Array<ESTree.ParamPattern>;
+
 function isPattern(node: ESTree.Node | null | undefined): boolean {
-  if (!node) {
-    return false;
+  if (node) {
+    return node.type === 'ObjectPattern' || node.type === 'ArrayPattern';
   }
-  return node.type === 'ObjectPattern' || node.type === 'ArrayPattern';
+  return false;
 }
 
 /**
@@ -18,7 +20,7 @@ function isRestParam(param: ESTree.ParamPattern): param is ESTree.FormalParamete
   return 'argument' in param;
 }
 
-function checkParams(context: RuleContext, params: ESTree.ParamPattern[]): void {
+function checkParams(context: RuleContext, params: Params): void {
   for (const param of params) {
     if (isPattern(param)) {
       const report = { messageId: 'noParams', node: param };

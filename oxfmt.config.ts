@@ -1,11 +1,10 @@
-import { defineConfig } from 'oxfmt';
+import { oxfmt, type OxfmtPreset } from '@rhberro/oxsome';
+import { defineConfig, type OxfmtConfig } from 'oxfmt';
 
-import { oxfmt } from './dist/index.js';
-
-// Dogfoods the preset this package ships.
-const config = {
-  ...oxfmt,
+const base = {
   ignorePatterns: ['*.md'],
 };
+
+const config: OxfmtConfig = Object.assign<OxfmtPreset, OxfmtConfig>(oxfmt, base);
 
 export default defineConfig(config);

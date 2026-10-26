@@ -1,10 +1,12 @@
 import type { CreateOnceRule, ESTree } from '@oxlint/plugins';
 
+type NodeTypes = ReadonlyArray<ESTree.Node['type']>;
+
 function isSimpleTemplateLiteral(node: ESTree.Node): boolean {
   return node.type === 'TemplateLiteral' && node.expressions.length === 0;
 }
 
-const ALLOWED_TYPES: readonly ESTree.Node['type'][] = [
+const ALLOWED_TYPES: NodeTypes = [
   'Identifier',
   'MemberExpression',
   'Literal',

@@ -1,10 +1,10 @@
 import type { CreateOnceRule, ESTree } from '@oxlint/plugins';
 
 type RuleContext = Parameters<CreateOnceRule['createOnce']>[0];
-type Node = ESTree.Node;
-type Expression = ESTree.Expression;
 
-function isInlineLiteral(expression: Node): expression is Expression {
+type Node = ESTree.Node;
+
+function isInlineLiteral(expression: Node): boolean {
   return (
     expression.type === 'ArrowFunctionExpression' ||
     expression.type === 'FunctionExpression' ||
@@ -18,85 +18,42 @@ function reportInlineLiteral(context: RuleContext, node: Node): void {
   context.report(report);
 }
 
-/**
- * Checks every argument of a call, descending into nested calls so a literal
- * buried a level down is still caught.
- *
- * No argument is exempt. The previous version allowed callbacks for React
- * hooks, array methods and promise methods, which was incoherent: the allowlist
- * could never be complete (`queue.add(fn)` failed while `items.map(fn)`
- * passed), and `new Promise(fn)` failed while `promise.then(fn)` passed. Those
- * exemptions mostly existed to let inline arrow functions through, which
- * `no-arrow-functions` already forbids.
- */
-function checkCallArguments(
+/** Every nested call is visited separately, so only inspect this call's first argument. */
+function checkFirstArgument(
   context: RuleContext,
   node: ESTree.CallExpression | ESTree.NewExpression,
-  consumed: Set<Node>,
 ): void {
-  for (const arg of node.arguments) {
-    if (arg.type === 'SpreadElement') {
-      if (isInlineLiteral(arg.argument)) {
-        reportInlineLiteral(context, arg);
-      }
-      continue;
-    }
-
-    if (arg.type === 'CallExpression' || arg.type === 'NewExpression') {
-      if (consumed.has(arg)) {
-        continue;
-      }
-      consumed.add(arg);
-      checkCallArguments(context, arg, consumed);
-      continue;
-    }
-
-    if (isInlineLiteral(arg)) {
-      reportInlineLiteral(context, arg);
-    }
-  }
-}
-
-function checkJsxAttribute(context: RuleContext, node: ESTree.JSXAttribute): void {
-  const value = node.value;
-  if (!value || value.type !== 'JSXExpressionContainer') {
+  const first = node.arguments[0];
+  if (!first) {
     return;
   }
-  const { expression } = value;
-  if (expression.type !== 'JSXEmptyExpression' && isInlineLiteral(expression)) {
-    reportInlineLiteral(context, expression);
+  if (first.type === 'SpreadElement') {
+    if (isInlineLiteral(first.argument)) {
+      reportInlineLiteral(context, first);
+    }
+    return;
+  }
+  if (isInlineLiteral(first)) {
+    reportInlineLiteral(context, first);
   }
 }
 
 const rule: CreateOnceRule = {
   createOnce(context) {
-    // Nested calls are checked by the outermost call that contains them. The
-    // visitor still fires for them, so this set is what stops a second report.
-    const consumed = new Set<Node>();
-
     return {
       CallExpression(node: ESTree.CallExpression) {
-        if (consumed.has(node)) {
-          return;
-        }
-        checkCallArguments(context, node, consumed);
-      },
-      JSXAttribute(node: ESTree.JSXAttribute) {
-        checkJsxAttribute(context, node);
+        checkFirstArgument(context, node);
       },
       NewExpression(node: ESTree.NewExpression) {
-        if (consumed.has(node)) {
-          return;
-        }
-        checkCallArguments(context, node, consumed);
+        checkFirstArgument(context, node);
       },
     };
   },
   meta: {
     messages: {
       noInline:
-        "Declare functions, objects, and arrays before use. Don't pass " +
-        'them inline as call arguments, constructor arguments or JSX props.',
+        'Declare a function, object or array before passing it as the first ' +
+        'argument of a call or constructor.',
     },
   },
 };

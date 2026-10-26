@@ -3,7 +3,9 @@ import { type Plugin, type Rule, eslintCompatPlugin } from '@oxlint/plugins';
 import noArrowFunctions from './rules/no-arrow-functions.js';
 import noDestructuringInParams from './rules/no-destructuring-in-params.js';
 import noInlineFunctionsObjectsArrays from './rules/no-inline-functions-objects-arrays.js';
+import noInlineStructuralTypes from './rules/no-inline-structural-types.js';
 import noJsxInlineComputation from './rules/no-jsx-inline-computation.js';
+import preferGenericArrayTypes from './rules/prefer-generic-array-types.js';
 
 /**
  * Declared separately so the rule names stay literal types. `eslintCompatPlugin`
@@ -14,7 +16,9 @@ const RULES = {
   'no-arrow-functions': noArrowFunctions,
   'no-destructuring-in-params': noDestructuringInParams,
   'no-inline-functions-objects-arrays': noInlineFunctionsObjectsArrays,
+  'no-inline-structural-types': noInlineStructuralTypes,
   'no-jsx-inline-computation': noJsxInlineComputation,
+  'prefer-generic-array-types': preferGenericArrayTypes,
 } satisfies Record<string, Rule>;
 
 /**

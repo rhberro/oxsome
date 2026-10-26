@@ -16,7 +16,9 @@ const RECOMMENDED_RULES = {
   'oxsome/no-arrow-functions': 'error',
   'oxsome/no-destructuring-in-params': 'error',
   'oxsome/no-inline-functions-objects-arrays': 'error',
+  'oxsome/no-inline-structural-types': 'error',
   'oxsome/no-jsx-inline-computation': 'error',
+  'oxsome/prefer-generic-array-types': 'error',
 } satisfies Partial<Record<PluginRuleName, 'error'>>;
 
 /**
@@ -34,6 +36,19 @@ export const oxsome = {
 };
 
 export { plugin as oxsomePlugin };
+
+type StringList = Array<string>;
+
+interface SortImportsPreset {
+  ignoreCase: boolean;
+  internalPattern: StringList;
+  newlinesBetween: boolean;
+  order: 'asc' | 'desc';
+}
+
+interface SortPackageJsonPreset {
+  sortScripts: boolean;
+}
 
 /**
  * Structural shape of the format preset.
@@ -54,15 +69,8 @@ export interface OxfmtPreset {
   quoteProps: 'as-needed' | 'consistent' | 'preserve';
   semi: boolean;
   singleQuote: boolean;
-  sortImports: {
-    ignoreCase: boolean;
-    internalPattern: string[];
-    newlinesBetween: boolean;
-    order: 'asc' | 'desc';
-  };
-  sortPackageJson: {
-    sortScripts: boolean;
-  };
+  sortImports: SortImportsPreset;
+  sortPackageJson: SortPackageJsonPreset;
   tabWidth: number;
   trailingComma: 'all' | 'es5' | 'none';
   useTabs: boolean;
